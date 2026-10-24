@@ -277,6 +277,27 @@ static void set_default(const char *name, const char *value)
 #endif
 }
 
+/* ── Bring-up: GPU and interrupt state ─────────────────────── */
+
+/* RKY_STATE_LOG=<seconds>: every that many seconds, one line for the GPU's
+ * command queue and interrupts and one for the kernel's interrupt counts --
+ * whether a stalled title waits on commands the GPU never saw, on a GPU that
+ * stopped, or on an interrupt nothing serviced. */
+extern void nv2a_debug_state(char *buf, int n);
+extern void xbox_kernel_debug_counts(char *buf, int n, uint32_t watch_va);
+
+static DWORD WINAPI state_log_thread(LPVOID arg)
+{
+    char a[512], b[512];
+    for (;;) {
+        Sleep((DWORD)(uintptr_t)arg * 1000);
+        nv2a_debug_state(a, sizeof a);
+        xbox_kernel_debug_counts(b, sizeof b, 0);
+        fprintf(stderr, "%s\n%s\n", a, b);
+    }
+    return 0;
+}
+
 /* ── Boot (guest thread) ───────────────────────────────────── */
 
 static void *guest_main(void *unused)
@@ -486,6 +507,9 @@ int main(int argc, char **argv)
     SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_UNDNAME);
     SymInitialize(GetCurrentProcess(), NULL, TRUE);
 #endif
+    if (getenv("RKY_STATE_LOG"))
+        CloseHandle(CreateThread(NULL, 0, state_log_thread,
+                                 (LPVOID)(uintptr_t)atoi(getenv("RKY_STATE_LOG")), 0, NULL));
     AddVectoredExceptionHandler(1, veh_handler);
     SetUnhandledExceptionFilter(crash_filter);
 

@@ -1,2 +1,66 @@
 [
+  {
+    "start": "0x00042440",
+    "note": "address taken as an immediate at 0x000434C8 (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x0004F0A0",
+    "note": "address taken as an immediate at 0x000509C1 (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x000532C0",
+    "note": "address taken as an immediate at 0x00057696 (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x000532F0",
+    "note": "address taken as an immediate at 0x000576C1 (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x00053550",
+    "note": "address taken as an immediate at 0x000576FD (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x00053670",
+    "note": "address taken as an immediate at 0x00057682 (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x000537B0",
+    "note": "address taken as an immediate at 0x0005777E (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x00053B30",
+    "note": "address taken as an immediate at 0x000575CB (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x0005E960",
+    "note": "address taken as an immediate at 0x0005EE8B (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x0006F7D0",
+    "note": "address taken as an immediate at 0x0006FDDB (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x00075A10",
+    "note": "address taken as an immediate at 0x00075EFB (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x0007BC60",
+    "note": "address taken as an immediate at 0x0007BF4B (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x00086C30",
+    "note": "address taken as an immediate at 0x000872CB (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x000B0F20",
+    "note": "address taken as an immediate at 0x000B1FDF (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x000E04F0",
+    "note": "address taken as an immediate at 0x000E14FA (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x000E07D0",
+    "note": "address taken as an immediate at 0x000E151F (scripts/find_code_pointers.py)"
+  }
 ]
