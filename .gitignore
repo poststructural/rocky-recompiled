@@ -1,0 +1,20 @@
+# Game files: never commit. Bring your own copy.
+/game/
+*.iso
+*.xbe
+*.PAK
+*.pak
+*.bik
+*.xba
+*.jw2
+*_analysis.json
+
+# Generated from the game binary (regenerate with scripts/regen.sh)
+/src/recomp/gen/
+
+# Build and scratch
+/build/
+/build-vk/
+/work/
+*.log
+stderr.txt
