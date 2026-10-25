@@ -19,7 +19,7 @@ setup and exhibition matches, at 60 fps with music, on the Vulkan build.
 - `settings.ini` beside the exe: window or fullscreen, resolution, aspect,
   render scale, `skip_intro` (skips the three boot movies).
 - Keyboard controls as in AnimaniacsRecompiled (Enter = Start, Space/K = A,
-  L = B, arrows = D-pad); SDL controllers.
+  L = B, arrows = D-pad); controllers through SDL (tested with an Xbox pad).
 
 Bring-up notes, the fixes and the debugging tools are in
 [docs/NOTES.md](docs/NOTES.md).
