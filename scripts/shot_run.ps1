@@ -8,11 +8,12 @@
 #   (guest .data/BSS to <prefix>_t<seconds>.bin) (keys are .NET
 #   System.Windows.Forms.Keys names: RETURN, SPACE, UP, DOWN, LEFT, RIGHT,
 #   BACK, ESCAPE, K, L ...; see docs for the keyboard controls).
-# stdout/stderr go to build-vk/vk_stdout.txt and build-vk/vk_stderr.txt; the
+# -Build: the build folder to run (default build-vk); the game is the repo's game/.
+# stdout/stderr go to <build>/vk_stdout.txt and build-vk/vk_stderr.txt; the
 # game is ended after the last step.
-param([string]$Out, [string]$At = "15", [string]$Steps = "", [string]$Env = "")
+param([string]$Out, [string]$At = "15", [string]$Steps = "", [string]$Env = "", [string]$Build = "build-vk")
 $root = Split-Path -Parent $PSScriptRoot
-$build = Join-Path $root "build-vk"
+$build = Join-Path $root $Build
 foreach ($kv in ($Env -split ";" | Where-Object { $_ })) {
     $k, $v = $kv -split "=", 2
     Set-Item -Path "Env:$k" -Value $v
@@ -34,7 +35,7 @@ foreach ($s in ($Steps -split "," | Where-Object { $_ })) {
     $events += [pscustomobject]@{ T = [double]$t; What = $key }
 }
 $events = $events | Sort-Object T
-$p = Start-Process (Join-Path $build "Rocky.exe") -WorkingDirectory $build -PassThru `
+$p = Start-Process (Join-Path $build "Rocky.exe") -ArgumentList "`"$root\game`"" -WorkingDirectory $build -PassThru `
     -RedirectStandardOutput (Join-Path $build "vk_stdout.txt") `
     -RedirectStandardError (Join-Path $build "vk_stderr.txt")
 $clock = [Diagnostics.Stopwatch]::StartNew()

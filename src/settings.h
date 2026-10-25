@@ -31,4 +31,8 @@ void rky_settings_load(RkySettings *s, const char *exe_dir, const char *save_dir
  * magnified (the framebuffer stays 4:3 and is drawn wider for widescreen). */
 int rky_settings_auto_scale(int out_w, int out_h, int cap);
 
+/* Write one key into settings.ini at path, keeping the rest of the file. */
+int rky_settings_set(const char *path, const char *section, const char *key,
+                     const char *value);
+
 #endif

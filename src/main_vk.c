@@ -37,6 +37,8 @@
 #include "nv2a_window.h"
 #include "settings.h"
 #include "install.h"
+
+extern void rky_options_init(RkySettings *s);
 #define SDL_MAIN_HANDLED   /* our own main(), not SDL_main */
 #include <SDL.h>
 
@@ -614,6 +616,7 @@ int main(int argc, char **argv)
         rky_skip_intro = s_settings.skip_intro;
         rky_hud_43 = !s_settings.hud_stretch;
         printf("Settings: %s\n", s_settings.path);
+        rky_options_init(&s_settings);   /* src/options_menu.c: F1 */
     }
 
 #if defined(_WIN32)

@@ -150,6 +150,66 @@ static char *trim(char *p)
     return p;
 }
 
+/* Change one key in settings.ini, keeping every other line (and the
+ * comments) as it was; a key the file lacks is added at the end of its
+ * section, a section it lacks at the end of the file. */
+int rky_settings_set(const char *path, const char *section, const char *key,
+                     const char *value)
+{
+    enum { MAX_LINES = 512 };
+    static char lines[MAX_LINES][512];
+    char cur[64] = "";
+    int n = 0, done = 0, sec_end = -1;
+    FILE *f = fopen(path, "r");
+
+    if (f) {
+        while (n < MAX_LINES && fgets(lines[n], sizeof lines[n], f))
+            n++;
+        fclose(f);
+    }
+    for (int i = 0; i < n && !done; i++) {
+        char tmp[512], *p, *eq;
+        snprintf(tmp, sizeof tmp, "%s", lines[i]);
+        p = trim(tmp);
+        if (*p == '[') {
+            char *e = strchr(p, ']');
+            if (e) {
+                *e = 0;
+                snprintf(cur, sizeof cur, "%s", trim(p + 1));
+            }
+            continue;
+        }
+        if (!strcmp(cur, section) && *p && *p != ';' && *p != '#')
+            sec_end = i;
+        eq = strchr(p, '=');
+        if (!strcmp(cur, section) && eq && *p != ';' && *p != '#') {
+            *eq = 0;
+            if (!strcmp(trim(p), key)) {
+                snprintf(lines[i], sizeof lines[i], "%s = %s\n", key, value);
+                done = 1;
+            }
+        }
+    }
+    if (!done && n < MAX_LINES - 2) {
+        if (sec_end >= 0) {
+            memmove(lines[sec_end + 2], lines[sec_end + 1],
+                    (size_t)(n - sec_end - 1) * sizeof lines[0]);
+            snprintf(lines[sec_end + 1], sizeof lines[0], "%s = %s\n", key, value);
+            n++;
+        } else {
+            snprintf(lines[n++], sizeof lines[0], "\n[%s]\n", section);
+            snprintf(lines[n++], sizeof lines[0], "%s = %s\n", key, value);
+        }
+    }
+    f = fopen(path, "w");
+    if (!f)
+        return 0;
+    for (int i = 0; i < n; i++)
+        fputs(lines[i], f);
+    fclose(f);
+    return 1;
+}
+
 int rky_settings_auto_scale(int out_w, int out_h, int cap)
 {
     int s = 1;

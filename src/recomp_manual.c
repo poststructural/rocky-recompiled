@@ -161,6 +161,18 @@ static void scene_shape_start(void)
     }
 }
 
+/* A new picture shape from the options screen, while the game runs: the
+ * projection aspect and widescreen flag below, and the presenter through the
+ * scene-shape thread. */
+void rky_apply_aspect(float aspect)
+{
+    float a = aspect > 4.0f / 3.0f + 0.01f ? aspect : 4.0f / 3.0f;
+    rky_aspect = aspect;
+    memcpy((void *)((uintptr_t)g_xbox_mem_offset + 0x0010FF84u), &a, 4);
+    GUEST32(0x0026339Cu) = a > 4.0f / 3.0f + 0.01f;
+    scene_shape_start();
+}
+
 /* Video mode setup (0x00058F20). Reads XGetVideoStandard (0x00096BA7) and
  * XGetVideoFlags (0x00096BD0); with the dashboard's widescreen flag (bit 0)
  * it sets the projection aspect at 0x0010FF84 (4:3 by default) to 16:9 and

@@ -21,6 +21,10 @@ setup and exhibition matches, at 60 fps with music, on the Vulkan build.
   that it is the USA retail release and installs the files once to
   `%LOCALAPPDATA%\RockyRecompiled\game` (`Rocky.exe --install <image>` does
   the same without asking).
+- **PC OPTIONS** screen over the paused game, in the look of the game's own
+  menus: F1, or Back + Start on a controller. Display mode, window size,
+  aspect ratio, render resolution, texture filtering, V-Sync, FPS counter,
+  skip intro; most apply at once, all are saved.
 - `settings.ini` beside the exe: window or fullscreen, resolution, aspect,
   render scale, `skip_intro` (skips the three boot movies).
 - Keyboard controls as in AnimaniacsRecompiled (Enter = Start, Space/K = A,
