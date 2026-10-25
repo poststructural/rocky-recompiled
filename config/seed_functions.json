@@ -62,5 +62,461 @@
   {
     "start": "0x000E07D0",
     "note": "address taken as an immediate at 0x000E151F (scripts/find_code_pointers.py)"
+  },
+  {
+    "start": "0x000E66A0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E7960",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E79B0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E7A40",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E7AA0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E7B40",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E7BB0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E7C80",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E7D60",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E7E90",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E7F70",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E80B0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E81B0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E8320",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E8370",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E8400",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E84E0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E86A0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E88F0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E8BE0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E8C50",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E8D10",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E8D80",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E8E50",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E8EE0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E8FE0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E90E0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E9250",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E9350",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E94C0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E95E0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E9780",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E97F0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E98B0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E99A0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000E9E30",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EA160",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EA1C0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EA260",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EA2B0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EA340",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EA490",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EA580",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EA6E0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EA7D0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EA920",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EAA30",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EABC0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EAC10",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EAC90",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EAD70",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EAF50",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EB1A0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EB480",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EB4F0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EB5D0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EB640",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EB710",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EB7A0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EB8B0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EB9C0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EBB50",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EBC50",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EBDD0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EBEF0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EC0B0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EC110",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EC1D0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EC2D0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EC740",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000ECA20",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000ECB70",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000ECBE0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000ECC70",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000ECD80",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000ECE90",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000ED020",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000ED120",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000ED250",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000ED410",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000ED470",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000ED870",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EDB60",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EDC00",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EDD10",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EDD80",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EDE50",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EDEB0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EDF60",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EE020",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EE150",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EE1F0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EE2F0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EE370",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EE450",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EE4A0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EE530",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EE5A0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EE730",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EE820",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EE8C0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EE980",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EEA20",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EEB60",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EEDC0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EF0C0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EF2C0",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EF480",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EF700",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EFA20",
+    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
+  },
+  {
+    "start": "0x000EFD84",
+    "note": "XPP code reached by ICALL during USB/pad setup (runtime [ICALL] Failed to resolve)"
+  },
+  {
+    "start": "0x000F0669",
+    "note": "XPP code reached by ICALL during USB/pad setup (runtime [ICALL] Failed to resolve)"
+  },
+  {
+    "start": "0x000F2069",
+    "note": "XPP code reached by ICALL during USB/pad setup (runtime [ICALL] Failed to resolve)"
+  },
+  {
+    "start": "0x000F17CD",
+    "note": "XPP code reached by ICALL once a pad is polled (runtime [ICALL] Failed to resolve)"
   }
 ]

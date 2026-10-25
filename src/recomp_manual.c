@@ -105,6 +105,67 @@ float rky_aspect = 4.0f / 3.0f;
 int rky_skip_intro;
 int rky_hud_43 = 1;
 
+/* A debug switch from the environment, read once: getenv in a per-frame hook
+ * costs real frame time. */
+#define RKY_ENV(name)     ({ static int v_ = -1; if (v_ < 0) v_ = getenv(name) != NULL; v_; })
+
+/* MMX check (0x0009BF40, cdecl, one flags argument). Toggles EFLAGS.ID with
+ * pushfd/popfd, runs cpuid(1) and tests EDX bit 23, then stores the answer at
+ * 0x001127E0 and Bink's "use MMX" flag at 0x004D53A8 (cleared when the
+ * argument has 0x40000 set). The lifter leaves pushfd, popfd and cpuid as
+ * no-ops, so the check failed, Bink's setup (0x000DE3AB) skipped choosing its
+ * row converters, BinkCopyToBuffer called a null converter for every row, and
+ * every movie played black. The Xbox's Pentium III has MMX: answer yes. */
+void sub_0009BF40(void)
+{
+    uint32_t flags = GUEST32(g_esp + 4);
+    GUEST32(0x001127E0u) = 1;
+    GUEST32(0x004D53A8u) = (flags & 0x40000u) ? 0 : 1;
+    g_eax = 1;    /* eax still holds the MMX answer at the ret */
+    g_esp += 4;   /* the ret: the caller pops the argument (cdecl) */
+}
+
+/* Movie player (0x0006BD50, cdecl: name, ...; called through 0x0006BEC0 and
+ * 0x0006BEE0). It plays the whole movie inside the call, and returns at once
+ * when the game's own "movies on" flag (0x003AABD0) is clear.
+ *
+ * Bring-up: the lifted Bink decoder corrupts its state a few frames in (an
+ * indirect call to 0x000E2601, mid-instruction, then a crash in 0x000DA470),
+ * so movies are skipped the way the game skips them unless RKY_MOVIES=1. */
+extern void sub_0006BD50_gen(void);
+void sub_0006BD50(void)
+{
+    if (!RKY_ENV("RKY_MOVIES")) {
+        g_eax = 0;
+        g_esp += 4;   /* the ret: the caller pops the arguments (cdecl) */
+        return;
+    }
+    sub_0006BD50_gen();
+}
+
+/* BinkCopyToBuffer (0x000DCED0, stdcall: bink, dest, pitch, height, x, y,
+ * flags). The movie player (0x0006BC80) locks a texture and has Bink write the
+ * frame into it. RKY_BINK_LOG=1: where each frame went and how much of it is
+ * not black. */
+extern void sub_000DCED0_gen(void);
+void sub_000DCED0(void)
+{
+    uint32_t dest = GUEST32(g_esp + 8), pitch = GUEST32(g_esp + 12);
+    uint32_t height = GUEST32(g_esp + 16), flags = GUEST32(g_esp + 28);
+    static unsigned frame;
+
+    sub_000DCED0_gen();
+    if (RKY_ENV("RKY_BINK_LOG") && frame++ % 30 == 0) {
+        const uint8_t *p = (const uint8_t *)((uintptr_t)g_xbox_mem_offset + dest);
+        unsigned nz = 0;
+        for (uint32_t y = 0; y < height; y += 4)
+            for (uint32_t x = 0; x < pitch; x += 3)
+                nz += p[y * pitch + x] != 0;
+        fprintf(stderr, "[BINK] frame %u -> 0x%08X pitch %u height %u flags 0x%X: "
+                        "%u nonzero samples\n", frame - 1, dest, pitch, height, flags, nz);
+    }
+}
+
 recomp_func_t recomp_lookup_manual(uint32_t xbox_va)
 {
     /*
