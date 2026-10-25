@@ -160,6 +160,61 @@ void sub_0006BD50(void)
     sub_0006BD50_gen();
 }
 
+/* Label trace for a hand-instrumented generated function (bring-up only):
+ * each label reached writes "va esp ebp" to RKY_TRACE_FILE. */
+int rky_trace_on;
+void rky_trace(uint32_t va, uint32_t esp, uint32_t ebp)
+{
+    static FILE *f;
+    if (!f) {
+        const char *p = getenv("RKY_TRACE_FILE");
+        f = fopen(p ? p : "trace.txt", "w");
+        if (!f) return;
+    }
+    fprintf(f, "%08X %08X %08X\n", va, esp, ebp);
+}
+
+/* Bink block decoder (0x000E14B0). RKY_BINK_GUARD=0xVA: report the call
+ * (counting from 0) after which the dword at VA first reads 0x01010101 --
+ * which decode call overran its block map. */
+extern void sub_000E14B0_gen(void);
+void sub_000E14B0(void)
+{
+    static unsigned calls;
+    static int reported;
+    static uint32_t guard = 1;
+    if (guard == 1) {
+        const char *e = getenv("RKY_BINK_GUARD");
+        guard = e ? (uint32_t)strtoul(e, NULL, 16) : 0;
+    }
+    {
+        extern int rky_trace_on;
+        const char *t = getenv("RKY_TRACE_CALL");
+        rky_trace_on = t && (unsigned)atoi(t) == calls;
+    }
+    sub_000E14B0_gen();
+    {
+        extern int rky_trace_on;
+        rky_trace_on = 0;
+    }
+    if (guard && !reported && GUEST32(guard) == 0x01010101u) {
+        reported = 1;
+        fprintf(stderr, "[BINK] decode call %u overran into 0x%08X\n", calls, guard);
+    }
+    calls++;
+}
+
+/* XAPI ReleaseMutex (0x0009A4F0, stdcall: handle). RKY_MUTEX_LOG=1: each
+ * failed release with its handle and caller. */
+extern void sub_0009A4F0_gen(void);
+void sub_0009A4F0(void)
+{
+    uint32_t h = GUEST32(g_esp + 4), ret = GUEST32(g_esp);
+    sub_0009A4F0_gen();
+    if (RKY_ENV("RKY_MUTEX_LOG") && !g_eax)
+        fprintf(stderr, "[MUTEX] ReleaseMutex(0x%08X) failed, called from 0x%08X\n", h, ret);
+}
+
 /* BinkCopyToBuffer (0x000DCED0, stdcall: bink, dest, pitch, height, x, y,
  * flags). The movie player (0x0006BC80) locks a texture and has Bink write the
  * frame into it. RKY_BINK_LOG=1: where each frame went and how much of it is

@@ -64,10 +64,6 @@
     "note": "address taken as an immediate at 0x000E151F (scripts/find_code_pointers.py)"
   },
   {
-    "start": "0x000E66A0",
-    "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
-  },
-  {
     "start": "0x000E7960",
     "note": "Bink pixel/plane routine from a function-pointer table in BINKDATA (called indirectly by the blitters)"
   },

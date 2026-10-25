@@ -118,6 +118,94 @@ extern bool apu_hook_handle_mmio(PCONTEXT ctx, uintptr_t fault_addr,
 #define APU_TRAP_BASE 0xFE800000u
 #define APU_TRAP_END  0xFE880000u
 
+/* ── Bring-up: guest memory write watch ────────────────────── */
+
+/* RKY_WATCH=0xVA[@ms]: after ms milliseconds (default 0), write-protect the
+ * guest page holding VA and report every write that changes a dword in that
+ * page: the host function that wrote (a lifted sub_XXXXXXXX), the old and new
+ * value, and the guest stack. RKY_WATCH_VALUE=0xV reports only writes that
+ * store V. The write is let through by stepping over it with the page
+ * unprotected. For finding who corrupts a structure. */
+static uint32_t s_watch_va, s_watch_value;
+static int s_watch_filter;
+static volatile LONG s_watch_stepping;
+static void *s_watch_rip;
+static uint32_t s_watch_before[1024];
+
+static void *watch_host(uint32_t va)
+{
+    return (void *)((uintptr_t)g_xbox_mem_offset + va);
+}
+
+static void watch_protect(void)
+{
+    DWORD old;
+    VirtualProtect(watch_host(s_watch_va & ~0xFFFu), 0x1000, PAGE_READONLY, &old);
+}
+
+static DWORD WINAPI watch_arm_thread(LPVOID ms)
+{
+    Sleep((DWORD)(uintptr_t)ms);
+    fprintf(stderr, "[WATCH] armed on the page of 0x%08X\n", s_watch_va);
+    watch_protect();
+    return 0;
+}
+
+static void watch_init(void)
+{
+    const char *e = getenv("RKY_WATCH"), *at, *v = getenv("RKY_WATCH_VALUE");
+    if (!e)
+        return;
+    s_watch_va = (uint32_t)strtoul(e, NULL, 16);
+    if (v) {
+        s_watch_value = (uint32_t)strtoul(v, NULL, 16);
+        s_watch_filter = 1;
+    }
+    at = strchr(e, '@');
+    CloseHandle(CreateThread(NULL, 0, watch_arm_thread,
+                             (LPVOID)(uintptr_t)(at ? atoi(at + 1) : 0), 0, NULL));
+}
+
+/* 1: handled (continue execution). One write is stepped over at a time; a
+ * write from another thread meanwhile waits on the page fault. */
+static int watch_exception(PEXCEPTION_POINTERS ep, uint32_t xbox_va, int is_write)
+{
+    DWORD code = ep->ExceptionRecord->ExceptionCode, old;
+    uint32_t page = s_watch_va & ~0xFFFu;
+
+    if (code == EXCEPTION_SINGLE_STEP && s_watch_stepping) {
+        const uint32_t *now = (const uint32_t *)watch_host(page);
+        ep->ContextRecord->EFlags &= ~0x100u;
+        for (int i = 0; i < 1024; i++) {
+            if (now[i] == s_watch_before[i] || (s_watch_filter && now[i] != s_watch_value))
+                continue;
+            fprintf(stderr, "[WATCH] 0x%08X: %08X -> %08X\n", page + i * 4,
+                    s_watch_before[i], now[i]);
+            print_host_symbol(stderr, s_watch_rip);
+            fprintf(stderr, "  Xbox regs: eax=%08X ecx=%08X edx=%08X ebx=%08X esi=%08X edi=%08X\n",
+                    g_eax, g_ecx, g_edx, g_ebx, g_esi, g_edi);
+            print_guest_stack(stderr);
+            break;
+        }
+        watch_protect();
+        InterlockedExchange(&s_watch_stepping, 0);
+        return 1;
+    }
+    if (code == EXCEPTION_ACCESS_VIOLATION && s_watch_va && is_write &&
+        (xbox_va & ~0xFFFu) == page) {
+        if (InterlockedCompareExchange(&s_watch_stepping, 1, 0) != 0) {
+            Sleep(0);   /* another thread is stepping its write: retry */
+            return 1;
+        }
+        memcpy(s_watch_before, watch_host(page), sizeof s_watch_before);
+        s_watch_rip = (void *)(uintptr_t)ep->ContextRecord->Rip;
+        VirtualProtect(watch_host(page), 0x1000, PAGE_READWRITE, &old);
+        ep->ContextRecord->EFlags |= 0x100u;   /* trap after the write */
+        return 1;
+    }
+    return 0;
+}
+
 static LONG CALLBACK veh_handler(PEXCEPTION_POINTERS ep)
 {
     uintptr_t fault_addr;
@@ -127,12 +215,18 @@ static LONG CALLBACK veh_handler(PEXCEPTION_POINTERS ep)
 #if defined(_WIN32) && XBOX_HAS_VCPU
     vcpu_win_unredirect(ep);
 #endif
+    if (ep->ExceptionRecord->ExceptionCode == EXCEPTION_SINGLE_STEP)
+        return watch_exception(ep, 0, 0) ? EXCEPTION_CONTINUE_EXECUTION
+                                         : EXCEPTION_CONTINUE_SEARCH;
     if (ep->ExceptionRecord->ExceptionCode != EXCEPTION_ACCESS_VIOLATION)
         return EXCEPTION_CONTINUE_SEARCH;
 
     fault_addr = ep->ExceptionRecord->ExceptionInformation[1];
     is_write = ep->ExceptionRecord->ExceptionInformation[0] ? 1 : 0;
     xbox_va = (uint32_t)(fault_addr - (uintptr_t)g_xbox_mem_offset);
+
+    if (watch_exception(ep, xbox_va, is_write))
+        return EXCEPTION_CONTINUE_EXECUTION;
 
     if (g_apu_state && xbox_va >= APU_TRAP_BASE && xbox_va < APU_TRAP_END
             && apu_hook_handle_mmio(ep->ContextRecord, fault_addr, xbox_va, is_write))
@@ -510,6 +604,7 @@ int main(int argc, char **argv)
     if (getenv("RKY_STATE_LOG"))
         CloseHandle(CreateThread(NULL, 0, state_log_thread,
                                  (LPVOID)(uintptr_t)atoi(getenv("RKY_STATE_LOG")), 0, NULL));
+    watch_init();
     AddVectoredExceptionHandler(1, veh_handler);
     SetUnhandledExceptionFilter(crash_filter);
 
