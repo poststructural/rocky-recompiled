@@ -125,6 +125,23 @@ void sub_0009BF40(void)
     g_esp += 4;   /* the ret: the caller pops the argument (cdecl) */
 }
 
+/* Video mode setup (0x00058F20). Reads XGetVideoStandard (0x00096BA7) and
+ * XGetVideoFlags (0x00096BD0); with the dashboard's widescreen flag (bit 0)
+ * it sets the projection aspect at 0x0010FF84 (4:3 by default) to 16:9 and
+ * the game's widescreen flag at 0x0026339C, which the 3D camera divides by
+ * (0x0010FF84 is read at the fdiv in the projection setup). The game's own
+ * anamorphic widescreen, so the picture keeps its height and widens (Hor+).
+ * Any shape wider than 4:3 is given to it here, ultrawide included. */
+extern void sub_00058F20_gen(void);
+void sub_00058F20(void)
+{
+    sub_00058F20_gen();
+    if (rky_aspect > 4.0f / 3.0f + 0.01f) {
+        memcpy((void *)((uintptr_t)g_xbox_mem_offset + 0x0010FF84u), &rky_aspect, 4);
+        GUEST32(0x0026339Cu) = 1;
+    }
+}
+
 /* Movie player (0x0006BD50, cdecl: name, ...; called through 0x0006BEC0 and
  * 0x0006BEE0). It plays the whole movie inside the call, and returns at once
  * when the game's own "movies on" flag (0x003AABD0) is clear.
