@@ -1,0 +1,14 @@
+--- a/xboxrecomp/tools/recomp/lifter.py
++++ b/xboxrecomp/tools/recomp/lifter.py
+@@ -1858,7 +1858,10 @@
+             r = ops[1].reg
+             if r in ("al", "bl", "cl", "dl", "ah", "bh", "ch", "dh"):
+                 src = f"SX8({src})"
+-            elif r in ("ax", "bx", "cx", "dx", "si", "di"):
++            elif r in ("ax", "bx", "cx", "dx", "si", "di", "bp", "sp"):
++                # bp and sp too: without them "movsx ebp, bp" lifted as a
++                # plain 16-bit read, zero-extending a negative value (Bink's
++                # IDCT, Rocky 0x000E50EC).
+                 src = f"SX16({src})"
+         return [_fmt_operand_write(ops[0], src)]
+ 

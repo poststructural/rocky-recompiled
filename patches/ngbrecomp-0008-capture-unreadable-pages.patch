@@ -1,0 +1,38 @@
+--- a/xboxrecomp/src/kernel/recomp_capture.c
++++ b/xboxrecomp/src/kernel/recomp_capture.c
+@@ -18,6 +18,7 @@
+  * mismatch is a lifting bug, found without knowing what the code does.
+  */
+ #ifdef _WIN32
++#include <windows.h>
+ #include <direct.h>
+ #define MKDIR(d) _mkdir(d)
+ #else
+@@ -181,7 +182,27 @@
+     snprintf(path, sizeof path, "%s/%s", dir, name);
+     f = fopen(path, "wb");
+     if (!f) { fprintf(stderr, "[CAPTURE] cannot write %s\n", path); return; }
++#ifdef _WIN32
++    /* In pieces, and unreadable pages as zeros: one fwrite of the whole
++     * contiguous window writes nothing at all if any page in it is reserved
++     * or guarded, and the replay then has no GPU-side memory to compare. */
++    {
++        static const uint8_t zero[0x10000];
++        const uint8_t *b = (const uint8_t *)p;
++        for (size_t off = 0; off < n; off += sizeof zero) {
++            size_t len = n - off < sizeof zero ? n - off : sizeof zero;
++            MEMORY_BASIC_INFORMATION mbi;
++            int readable = VirtualQuery(b + off, &mbi, sizeof mbi) &&
++                           mbi.State == MEM_COMMIT &&
++                           !(mbi.Protect & (PAGE_NOACCESS | PAGE_GUARD)) &&
++                           (size_t)((const uint8_t *)mbi.BaseAddress + mbi.RegionSize
++                                    - (b + off)) >= len;
++            fwrite(readable ? b + off : zero, 1, len, f);
++        }
++    }
++#else
+     fwrite(p, 1, n, f);
++#endif
+     fclose(f);
+ }
+ 

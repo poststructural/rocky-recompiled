@@ -56,7 +56,7 @@ typedef void (*recomp_func_t)(void);
 #else
 #  define RKY_TLS _Thread_local
 #endif
-extern RKY_TLS uint32_t g_eax, g_esp;
+extern RKY_TLS uint32_t g_eax, g_ecx, g_edx, g_ebx, g_esp, g_esi, g_edi;
 extern ptrdiff_t g_xbox_mem_offset;
 
 /* ── Manual function overrides ─────────────────────────────── */
@@ -145,14 +145,22 @@ void sub_00058F20(void)
 /* Movie player (0x0006BD50, cdecl: name, ...; called through 0x0006BEC0 and
  * 0x0006BEE0). It plays the whole movie inside the call, and returns at once
  * when the game's own "movies on" flag (0x003AABD0) is clear.
- *
- * Bring-up: the lifted Bink decoder corrupts its state a few frames in (an
- * indirect call to 0x000E2601, mid-instruction, then a crash in 0x000DA470),
- * so movies are skipped the way the game skips them unless RKY_MOVIES=1. */
+ * The boot plays UBILOGO, MGMLOGO and USINTRO (names at 0x000FD774,
+ * 0x000FD76C, 0x000FD764); settings.ini skip_intro = on skips those three.
+ * RKY_NO_MOVIES=1 skips every movie; RKY_MOVIE_LOG=1 lists each call. */
 extern void sub_0006BD50_gen(void);
 void sub_0006BD50(void)
 {
-    if (!RKY_ENV("RKY_MOVIES")) {
+    if (RKY_ENV("RKY_MOVIE_LOG")) {
+        uint32_t a = GUEST32(g_esp + 4);
+        const char *s = a >= 0x10000u && a < 0x04000000u
+                      ? (const char *)((uintptr_t)g_xbox_mem_offset + a) : "";
+        fprintf(stderr, "[MOVIE] 0x%08X \"%.40s\" 0x%X 0x%X 0x%X\n", a, s,
+                GUEST32(g_esp + 8), GUEST32(g_esp + 12), GUEST32(g_esp + 16));
+    }
+    uint32_t name = GUEST32(g_esp + 4);
+    if (RKY_ENV("RKY_NO_MOVIES") ||
+        (rky_skip_intro && (name == 0x000FD774u || name == 0x000FD76Cu || name == 0x000FD764u))) {
         g_eax = 0;
         g_esp += 4;   /* the ret: the caller pops the arguments (cdecl) */
         return;
@@ -160,18 +168,33 @@ void sub_0006BD50(void)
     sub_0006BD50_gen();
 }
 
-/* Label trace for a hand-instrumented generated function (bring-up only):
- * each label reached writes "va esp ebp" to RKY_TRACE_FILE. */
-int rky_trace_on;
-void rky_trace(uint32_t va, uint32_t esp, uint32_t ebp)
+/* Label trace for a function instrumented by scripts/label_trace.py
+ * (bring-up only). RKY_TRACE_VA names the function, RKY_TRACE_CALL which of
+ * its calls (from 0), RKY_TRACE_FILE where "va eax ecx edx ebx esp ebp esi
+ * edi" goes for each label that call reaches. */
+void rky_trace(uint32_t va, uint32_t ebp)
 {
     static FILE *f;
+    static uint32_t want_va = 1;
+    static unsigned want_call, calls;
+    static int on;
+    if (want_va == 1) {
+        const char *v = getenv("RKY_TRACE_VA"), *c = getenv("RKY_TRACE_CALL");
+        want_va = v ? (uint32_t)strtoul(v, NULL, 16) : 0;
+        want_call = c ? (unsigned)atoi(c) : 0;
+    }
+    if (va == want_va)
+        on = calls++ == want_call;
+    if (!on)
+        return;
     if (!f) {
         const char *p = getenv("RKY_TRACE_FILE");
         f = fopen(p ? p : "trace.txt", "w");
         if (!f) return;
     }
-    fprintf(f, "%08X %08X %08X\n", va, esp, ebp);
+    fprintf(f, "%08X %08X %08X %08X %08X %08X %08X %08X %08X\n", va, g_eax, g_ecx, g_edx,
+            g_ebx, g_esp, ebp, g_esi, g_edi);
+    fflush(f);   /* the game is usually killed, not closed */
 }
 
 /* Bink block decoder (0x000E14B0). RKY_BINK_GUARD=0xVA: report the call
@@ -187,16 +210,7 @@ void sub_000E14B0(void)
         const char *e = getenv("RKY_BINK_GUARD");
         guard = e ? (uint32_t)strtoul(e, NULL, 16) : 0;
     }
-    {
-        extern int rky_trace_on;
-        const char *t = getenv("RKY_TRACE_CALL");
-        rky_trace_on = t && (unsigned)atoi(t) == calls;
-    }
     sub_000E14B0_gen();
-    {
-        extern int rky_trace_on;
-        rky_trace_on = 0;
-    }
     if (guard && !reported && GUEST32(guard) == 0x01010101u) {
         reported = 1;
         fprintf(stderr, "[BINK] decode call %u overran into 0x%08X\n", calls, guard);

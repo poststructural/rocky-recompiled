@@ -42,20 +42,30 @@
    BinkCopyToBuffer called a null pointer for every row. `recomp_manual.c`
    answers yes. Bink's converters then lived in BINKDATA pointer tables the
    detector missed: 113 seeded (`scripts/find_table_pointers.py`).
-3. **Bink decoder crash.** A few frames into the first movie the lifted
-   decoder makes an indirect call to `0x000E2601` (mid-instruction, so a
-   corrupted computed target) and then faults in `0x000DA470`. Movies are
-   skipped (`0x0006BD50` returns as if movies were off) unless
-   `RKY_MOVIES=1`. Next step: find the lifting bug, or play movies on the
-   host.
-4. **Result:** legal screen, title screen, main menu, Movie Mode (career
+3. **Bink decoder crash.** A few frames into the first movie the decoder
+   wrote its block map past the end, over Bink's I/O thread context (mutex
+   handle 0x01010101), then crashed in `0x000DA470`. `RKY_BINK_GUARD` found
+   the overrunning decode call (always the 20th), `RECOMP_CAPTURE` +
+   `tools.recomp.difftest` (Unicorn replay) showed call 18 returning with the
+   wrong ebx/esi/edi, and per-label traces of both runs
+   (`scripts/label_trace.py`) put the divergence in a call to `0x000E60A0`
+   that returned 0x14C bytes deep. Cause: one of the Bink table seeds,
+   `0x000E66A0`, is a data word that only looks like a pointer into the middle
+   of `0x000E60A0`; seeding it split the function. Removed.
+4. **Mis-coloured blocks in movies.** Bink's IDCT (`0x000E5040`) does
+   `movsx ebp, bp` (`0x000E50EC`); the lifter's movsx handled ax..di but not
+   bp/sp and zero-extended. Fixed in `patches/ngbrecomp-0007`. Found the same
+   way (difftest on decode call 82, label traces, `--watch` on a bad pixel).
+   Movies now play cleanly; `skip_intro = on` skips UBILOGO/MGMLOGO/USINTRO.
+   `patches/ngbrecomp-0008` makes `RECOMP_CAPTURE` write the contiguous
+   window too (one big fwrite wrote nothing).
+5. **Result:** legal screen, title screen, main menu, Movie Mode (career
    start, difficulty, name entry), the ring announcer intro and a fight
    (Rocky vs Rico). Music plays (`RECOMP_AUDIO_WAV`; a little hot, with some
    clipping at peaks).
 
 ### Open issues
 
-- Movies (above).
 - `[THUNK] 233 kernel imports are unresolved` warning at boot, with only 121
   imports; ordinals 37 and 91 are unresolved. Nothing has failed from it yet.
 - Audio peaks clip.
@@ -65,6 +75,14 @@
 - `RKY_STATE_LOG=<s>`: GPU queue/interrupt state and kernel interrupt counts
   every s seconds.
 - `RKY_BINK_LOG=1`: where each Bink frame went and whether it is all black.
+- `RKY_WATCH=0xVA[@ms]` (+ `RKY_WATCH_VALUE`): report writes to the guest
+  page of VA with the writing function and guest stack.
+- `scripts/capture_diff.ps1 -Va 0x... -Skip n` / `capture_diff_list.ps1`:
+  capture one call and replay it in Unicorn against the original code
+  (needs `pip install unicorn numpy`). `scripts/label_trace.py`: label traces
+  of lifted vs original to find where they part.
+- Seeds from data tables need checking: a target the previous instruction
+  falls into is not a function start (`0x000E66A0`).
 - `scripts/shot_run.ps1 -Out <prefix> -At "15,30" -Steps "22=RETURN,25=DOWN"`:
   run, press keys (keyboard controls as in Animaniacs: Enter = Start,
   Space/K = A, L = B, arrows = D-pad), screenshot the window.
