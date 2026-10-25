@@ -66,8 +66,12 @@
 
 ### Open issues
 
-- `[THUNK] 233 kernel imports are unresolved` warning at boot, with only 121
-  imports; ordinals 37 and 91 are unresolved. Nothing has failed from it yet.
+- `[THUNK] 233 kernel imports are unresolved` at boot is cosmetic: it counts
+  every slot of the runtime's full table. Of Rocky's 121 imports only 37
+  (FscSetCacheSize) and 91 (IoDismountVolumeByName) are unresolved; nothing
+  has failed from them.
+- The pause menu and other 2D drawn during a match are stretched to the
+  window's shape (the match HUD itself is the game's own 16:9 layout).
 - Audio peaks clip.
 
 ## Bring-up tools

@@ -9,7 +9,20 @@ pipeline and Vulkan build are carried over from
 
 **No game files are included.** You need your own copy of the game.
 
-## Status: bring-up
+## Status: playable (Windows, early)
+
+Boots through the intro movies to the title screen, menus, Movie Mode career
+setup and exhibition matches, at 60 fps with music, on the Vulkan build.
+
+- Fights in widescreen and ultrawide through the game's own 16:9 mode
+  (Hor+); menus and movies at 4:3 with side bars.
+- `settings.ini` beside the exe: window or fullscreen, resolution, aspect,
+  render scale, `skip_intro` (skips the three boot movies).
+- Keyboard controls as in AnimaniacsRecompiled (Enter = Start, Space/K = A,
+  L = B, arrows = D-pad); SDL controllers.
+
+Bring-up notes, the fixes and the debugging tools are in
+[docs/NOTES.md](docs/NOTES.md).
 
 ## The game binary
 
