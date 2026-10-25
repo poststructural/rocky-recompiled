@@ -195,8 +195,10 @@ recomp_func_t recomp_lookup_manual(uint32_t xbox_va)
  */
 void recomp_icall_fail_log(uint32_t va)
 {
-    fprintf(stderr, "[ICALL] Failed to resolve VA 0x%08X (total calls: %llu)\n",
-            va, (unsigned long long)g_icall_count);
+    /* The call pushed its return address before dispatching: that names the
+     * call site. */
+    fprintf(stderr, "[ICALL] Failed to resolve VA 0x%08X (returns to 0x%08X; total calls: %llu)\n",
+            va, GUEST32(g_esp), (unsigned long long)g_icall_count);
 
     /* Dump last 16 call targets from the ring buffer */
     fprintf(stderr, "  Recent ICALL targets:\n");
