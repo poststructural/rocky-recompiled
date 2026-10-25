@@ -43,7 +43,7 @@ foreach ($e in $events) {
     if ($wait -gt 0) { Start-Sleep -Milliseconds ([int]($wait * 1000)) }
     if ($p.HasExited) { "game exited (code $($p.ExitCode)) before $($e.T)s"; break }
     if ($e.What -eq "shot") {
-        & (Join-Path $PSScriptRoot "winshot.ps1") "${Out}_t$($e.T).png"
+        & (Join-Path $PSScriptRoot "winshot.ps1") "${Out}_t$($e.T).png" -ProcessId $p.Id
     } elseif ($e.What -eq "dump") {
         # Guest .data + BSS, for scripts/guest_mem.py-style diffs between states.
         $env:RKY_MEM_BASE = ""

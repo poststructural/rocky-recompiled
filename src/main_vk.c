@@ -36,6 +36,7 @@
 #include "nv2a_vk_runtime.h"
 #include "nv2a_window.h"
 #include "settings.h"
+#include "install.h"
 #define SDL_MAIN_HANDLED   /* our own main(), not SDL_main */
 #include <SDL.h>
 
@@ -573,16 +574,34 @@ int main(int argc, char **argv)
      * acknowledge its commands (found from GPSADDR; patches/ngbrecomp-0001). */
     set_default("RECOMP_APU_DSP_ACK", "auto");
 
-    if (argc > 1)
-        snprintf(s_game_dir, sizeof s_game_dir, "%s", argv[1]);
-    else if (getenv("RKY_GAME_DIR"))
-        snprintf(s_game_dir, sizeof s_game_dir, "%s", getenv("RKY_GAME_DIR"));
-    else {
-        exe_dir(s_game_dir, sizeof s_game_dir);
-        strncat(s_game_dir, "game", sizeof s_game_dir - strlen(s_game_dir) - 1);
-    }
     printf("=== Rocky - Static Recompilation %s (Vulkan) ===\n",
            RKY_VERSION);
+    {
+        /* The game's files (src/install.c): found, or installed from the
+         * player's disc on first run. --install <image> installs without
+         * asking (testing and scripted setups). */
+        char exe[4096], save[4096];
+        const char *arg = NULL, *install_src = NULL;
+        exe_dir(exe, sizeof exe);
+        save_dir_path(save, sizeof save);
+        rky_mkdirs(save);
+        for (int i = 1; i < argc; i++) {
+            if (!strcmp(argv[i], "--install") && i + 1 < argc)
+                install_src = argv[++i];
+            else if (argv[i][0] != '-')
+                arg = argv[i];
+        }
+        if (install_src) {
+            if (!rky_install(install_src, save, s_game_dir, sizeof s_game_dir, NULL, NULL)) {
+                fprintf(stderr, "Install failed: %s\n", rky_install_error());
+                return 1;
+            }
+            printf("Installed to %s\n", s_game_dir);
+        } else if (!rky_find_game(arg, save, exe, s_game_dir, sizeof s_game_dir) &&
+                   !rky_first_run(save, s_game_dir, sizeof s_game_dir)) {
+            return 0;
+        }
+    }
     printf("Game directory: %s\n", s_game_dir);
 
     {

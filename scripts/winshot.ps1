@@ -1,9 +1,9 @@
 # Screenshot of the running game's window (bring-up aid).
 #
-#   powershell -File scripts/winshot.ps1 <out.png> [process-name]
+#   powershell -File scripts/winshot.ps1 <out.png> [process-name] [-ProcessId n]
 #
 # Copies the window's area from the screen, so the window has to be visible.
-param([string]$Out, [string]$Name = "Rocky")
+param([string]$Out, [string]$Name = "Rocky", [int]$ProcessId = 0)
 Add-Type -AssemblyName System.Drawing
 Add-Type @"
 using System;
@@ -16,7 +16,8 @@ public static class RkyWin {
 }
 "@
 [RkyWin]::SetProcessDPIAware() | Out-Null
-$p = Get-Process $Name | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
+$p = if ($ProcessId) { Get-Process -Id $ProcessId } else {
+    Get-Process $Name | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1 }
 if (-not $p) { throw "no window for $Name" }
 [RkyWin]::SetForegroundWindow($p.MainWindowHandle) | Out-Null
 Start-Sleep -Milliseconds 300

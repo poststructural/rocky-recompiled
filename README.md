@@ -16,6 +16,11 @@ setup and exhibition matches, at 60 fps with music, on the Vulkan build.
 
 - Fights in widescreen and ultrawide through the game's own 16:9 mode
   (Hor+); menus and movies at 4:3 with side bars.
+- First run asks for your disc: the ISO (plain or a full Redump dump), the
+  .zip/.7z it came in, or the `default.xbe` of an extracted copy. It checks
+  that it is the USA retail release and installs the files once to
+  `%LOCALAPPDATA%\RockyRecompiled\game` (`Rocky.exe --install <image>` does
+  the same without asking).
 - `settings.ini` beside the exe: window or fullscreen, resolution, aspect,
   render scale, `skip_intro` (skips the three boot movies).
 - Keyboard controls as in AnimaniacsRecompiled (Enter = Start, Space/K = A,
@@ -61,7 +66,7 @@ cmake -S vk -B build-vk -G Ninja \
     -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/windows-llvm-mingw.cmake
 ninja -C build-vk
 
-# 5. Put (or link) game/ in build-vk/, then run
+# 5. Run; the first start asks for your disc image (or put game/ beside the exe)
 build-vk/Rocky.exe
 ```
 

@@ -18,3 +18,4 @@
 /work/
 *.log
 stderr.txt
+/build-dev/

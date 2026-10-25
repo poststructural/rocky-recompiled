@@ -72,6 +72,7 @@ target_compile_options(rky_gen PRIVATE
 add_executable(${PROJECT_NAME}
     ${RKY_ROOT}/src/main_vk.c
     ${RKY_ROOT}/src/settings.c
+    ${RKY_ROOT}/src/install.c
     ${RKY_ROOT}/src/recomp_manual.c
     $<TARGET_OBJECTS:rky_gen>)
 target_compile_definitions(${PROJECT_NAME} PRIVATE RKY_NV2A_VK
@@ -90,7 +91,7 @@ if(WIN32)
     option(RKY_GUI "Build without a console window" ON)
     set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME Rocky
                           WIN32_EXECUTABLE ${RKY_GUI})
-    target_link_libraries(${PROJECT_NAME} PRIVATE winmm dbghelp)
+    target_link_libraries(${PROJECT_NAME} PRIVATE winmm dbghelp comctl32 comdlg32 shell32)
     # A PDB beside the exe: every lifted function is a symbol (sub_XXXXXXXX),
     # so crash reports and scripts/sample_profile.py name guest functions.
     target_link_options(${PROJECT_NAME} PRIVATE -Wl,--pdb=)
