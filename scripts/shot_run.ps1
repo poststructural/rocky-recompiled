@@ -4,7 +4,8 @@
 #                                         [-Env "NAME=value;NAME2=value"]
 #
 # -At: seconds at which to save <prefix>_t<seconds>.png.
-# -Steps: seconds=key presses, sent to the game window (keys are .NET
+# -Steps: seconds=key presses, sent to the game window, or seconds=dump
+#   (guest .data/BSS to <prefix>_t<seconds>.bin) (keys are .NET
 #   System.Windows.Forms.Keys names: RETURN, SPACE, UP, DOWN, LEFT, RIGHT,
 #   BACK, ESCAPE, K, L ...; see docs for the keyboard controls).
 # stdout/stderr go to build-vk/vk_stdout.txt and build-vk/vk_stderr.txt; the
@@ -43,6 +44,10 @@ foreach ($e in $events) {
     if ($p.HasExited) { "game exited (code $($p.ExitCode)) before $($e.T)s"; break }
     if ($e.What -eq "shot") {
         & (Join-Path $PSScriptRoot "winshot.ps1") "${Out}_t$($e.T).png"
+    } elseif ($e.What -eq "dump") {
+        # Guest .data + BSS, for scripts/guest_mem.py-style diffs between states.
+        $env:RKY_MEM_BASE = ""
+        python (Join-Path $PSScriptRoot "guest_mem.py") dump "${Out}_t$($e.T).bin" 108680 4D5748
     } else {
         $p.Refresh()
         [RkyKeys]::SetForegroundWindow($p.MainWindowHandle) | Out-Null

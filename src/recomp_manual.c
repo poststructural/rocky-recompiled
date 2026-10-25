@@ -125,6 +125,42 @@ void sub_0009BF40(void)
     g_esp += 4;   /* the ret: the caller pops the argument (cdecl) */
 }
 
+/* Picture shape per scene. The fights and other 3D scenes are drawn with the
+ * real aspect (see 0x00058F20 below), but the menus are 640x480 2D art and
+ * every movie is 640x480 4:3: those are shown at 4:3 with side bars instead
+ * of stretched. The main loop (0x00021BC0) keeps its state at 0x0010A70C:
+ * -1 while in the frontend, 0 in a match, other values for what happens
+ * after one. Checked from a host thread, so nothing in the frame loop waits
+ * on it. */
+#define RKY_LOOP_STATE 0x0010A70Cu
+extern void nv2a_present_set_aspect(double aspect);
+static volatile int s_movie_playing;
+
+static DWORD WINAPI scene_shape_thread(LPVOID unused)
+{
+    double shown = 0.0;
+    (void)unused;
+    for (;;) {
+        int wide = !s_movie_playing && GUEST32(RKY_LOOP_STATE) != 0xFFFFFFFFu;
+        double want = wide ? rky_aspect : 4.0 / 3.0;
+        if (want != shown) {
+            nv2a_present_set_aspect(want);
+            shown = want;
+        }
+        Sleep(50);
+    }
+    return 0;
+}
+
+static void scene_shape_start(void)
+{
+    static int started;
+    if (!started && rky_aspect > 4.0f / 3.0f + 0.01f) {
+        started = 1;
+        CloseHandle(CreateThread(NULL, 0, scene_shape_thread, NULL, 0, NULL));
+    }
+}
+
 /* Video mode setup (0x00058F20). Reads XGetVideoStandard (0x00096BA7) and
  * XGetVideoFlags (0x00096BD0); with the dashboard's widescreen flag (bit 0)
  * it sets the projection aspect at 0x0010FF84 (4:3 by default) to 16:9 and
@@ -140,6 +176,7 @@ void sub_00058F20(void)
         memcpy((void *)((uintptr_t)g_xbox_mem_offset + 0x0010FF84u), &rky_aspect, 4);
         GUEST32(0x0026339Cu) = 1;
     }
+    scene_shape_start();
 }
 
 /* Movie player (0x0006BD50, cdecl: name, ...; called through 0x0006BEC0 and
@@ -165,7 +202,9 @@ void sub_0006BD50(void)
         g_esp += 4;   /* the ret: the caller pops the arguments (cdecl) */
         return;
     }
+    s_movie_playing = 1;
     sub_0006BD50_gen();
+    s_movie_playing = 0;
 }
 
 /* Label trace for a function instrumented by scripts/label_trace.py
