@@ -16,6 +16,10 @@ int rky_find_game(const char *arg, const char *save_dir, const char *exe_dir,
  * the player cancelled. */
 int rky_first_run(const char *save_dir, char *out, size_t n);
 
+/* The file dialog and install, without the first-run explanation (the
+ * launcher's Game Files page). owner: an HWND or NULL. */
+int rky_install_dialog(void *owner, const char *save_dir, char *out, size_t n);
+
 /* Progress of an install: total 0 = unknown length (unpacking an archive). */
 typedef void (*rky_progress_fn)(uint64_t done, uint64_t total, void *ud);
 

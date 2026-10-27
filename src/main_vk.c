@@ -38,6 +38,8 @@
 #include "settings.h"
 #include "install.h"
 #include "mods.h"
+#include "launcher.h"
+#include "update.h"
 
 extern void rky_options_init(RkySettings *s);
 #define SDL_MAIN_HANDLED   /* our own main(), not SDL_main */
@@ -580,46 +582,73 @@ int main(int argc, char **argv)
     printf("=== Rocky - Static Recompilation %s (Vulkan) ===\n",
            RKY_VERSION);
     {
-        /* The game's files (src/install.c): found, or installed from the
-         * player's disc on first run. --install <image> installs without
-         * asking (testing and scripted setups). */
+        /* Settings, then the game's files (src/install.c) and the launcher
+         * (src/launcher.c), then mods.
+         *   <folder>          the game's files are there
+         *   --install <image> install without asking (scripted setups)
+         *   --play            no launcher
+         *   --launcher        the launcher even when settings skip it */
+        extern int rky_skip_intro, rky_hud_43;   /* recomp_manual.c */
         char exe[4096], save[4096];
         const char *arg = NULL, *install_src = NULL;
+        int play = 0, force_launcher = 0, have_game;
         exe_dir(exe, sizeof exe);
         save_dir_path(save, sizeof save);
         rky_mkdirs(save);
+        rky_update_cleanup(exe);
         for (int i = 1; i < argc; i++) {
             if (!strcmp(argv[i], "--install") && i + 1 < argc)
                 install_src = argv[++i];
+            else if (!strcmp(argv[i], "--play"))
+                play = 1;
+            else if (!strcmp(argv[i], "--launcher"))
+                force_launcher = 1;
+            else if (!strcmp(argv[i], "--update")) {
+                /* Check GitLab and install a newer release, then quit
+                 * (scripted updates; the launcher does the same). */
+                int st;
+                rky_update_check();
+                while ((st = rky_update_state()) == RKY_UPD_CHECKING) Sleep(50);
+                if (st == RKY_UPD_AVAILABLE) {
+                    printf("Updating to %s...\n", rky_update_latest());
+                    rky_update_install(exe);
+                    while ((st = rky_update_state()) == RKY_UPD_DOWNLOADING) Sleep(50);
+                }
+                printf("%s\n", st == RKY_UPD_READY ? "Updated; start Rocky.exe again."
+                             : st == RKY_UPD_CURRENT ? "This is the newest version."
+                             : rky_update_error());
+                return st == RKY_UPD_FAILED;
+            }
             else if (argv[i][0] != '-')
                 arg = argv[i];
         }
+        rky_settings_load(&s_settings, exe, save);
+        printf("Settings: %s\n", s_settings.path);
+        rky_mods_init(exe, save);        /* src/mods.c: mods/<name>/ (listed in the launcher) */
         if (install_src) {
             if (!rky_install(install_src, save, s_game_dir, sizeof s_game_dir, NULL, NULL)) {
                 fprintf(stderr, "Install failed: %s\n", rky_install_error());
                 return 1;
             }
             printf("Installed to %s\n", s_game_dir);
-        } else if (!rky_find_game(arg, save, exe, s_game_dir, sizeof s_game_dir) &&
-                   !rky_first_run(save, s_game_dir, sizeof s_game_dir)) {
+            have_game = play = 1;
+        } else {
+            have_game = rky_find_game(arg, save, exe, s_game_dir, sizeof s_game_dir);
+        }
+        if (!play && (force_launcher || !s_settings.skip_launcher)) {
+            if (!rky_launcher_run(&s_settings, exe, save, s_game_dir, sizeof s_game_dir, have_game))
+                return 0;
+            rky_settings_load(&s_settings, exe, save);   /* what the launcher changed */
+            rky_mods_init(exe, save);
+        } else if (!have_game && !rky_first_run(save, s_game_dir, sizeof s_game_dir)) {
             return 0;
         }
-    }
-    printf("Game directory: %s\n", s_game_dir);
-
-    {
-        extern int rky_skip_intro, rky_hud_43;   /* recomp_manual.c */
-        char exe[4096], save[4096];
-        exe_dir(exe, sizeof exe);
-        save_dir_path(save, sizeof save);
-        rky_mkdirs(save);
-        rky_settings_load(&s_settings, exe, save);
+        rky_settings_apply_env(&s_settings);
         rky_skip_intro = s_settings.skip_intro;
         rky_hud_43 = !s_settings.hud_stretch;
-        printf("Settings: %s\n", s_settings.path);
         rky_options_init(&s_settings);   /* src/options_menu.c: F1 */
-        rky_mods_init(exe, save);        /* src/mods.c: mods/<name>/ */
     }
+    printf("Game directory: %s\n", s_game_dir);
 
 #if defined(_WIN32)
     SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_UNDNAME);

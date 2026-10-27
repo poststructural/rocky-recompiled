@@ -65,7 +65,13 @@ static const char DEFAULT_INI[] =
     "\n"
     "[game]\n"
     "; on skips the publisher logos and intro movie at start-up\n"
-    "skip_intro = off\n";
+    "skip_intro = off\n"
+    "\n"
+    "[launcher]\n"
+    "; on starts the game straight away (Rocky.exe --launcher shows it anyway)\n"
+    "skip_launcher = off\n"
+    "; on looks for a new release on GitLab when the launcher opens\n"
+    "update_check = on\n";
 
 static int truthy(const char *v)
 {
@@ -136,6 +142,11 @@ static void apply(RkySettings *s, const char *section, const char *key,
     } else if (!strcmp(section, "game")) {
         if (!strcmp(key, "skip_intro"))
             s->skip_intro = truthy(val);
+    } else if (!strcmp(section, "launcher")) {
+        if (!strcmp(key, "skip_launcher"))
+            s->skip_launcher = truthy(val);
+        else if (!strcmp(key, "update_check"))
+            s->update_check = truthy(val);
     }
 }
 
@@ -232,6 +243,7 @@ void rky_settings_load(RkySettings *s, const char *exe_dir, const char *save_dir
     s->render_scale = 0;
     s->max_render_scale = 6;
     s->msaa = 1;
+    s->update_check = 1;
     snprintf(s->texture_filter, sizeof s->texture_filter, "smooth");
 
     snprintf(path, sizeof path, "%ssettings.ini", exe_dir);
@@ -276,7 +288,12 @@ parse:
         }
         fclose(f);
     }
+}
 
+/* The settings that reach the renderer through its environment switches.
+ * Once, after the launcher (whose changes are in s by then). */
+void rky_settings_apply_env(const RkySettings *s)
+{
     if (s->show_fps)
         set_default("NV2A_SHOW_FPS", "1");
     if (s->msaa > 1) {

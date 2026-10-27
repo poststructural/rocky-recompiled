@@ -18,12 +18,14 @@
 #include <windows.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
 #include "nv2a_window.h"
 #include "settings.h"
+#include "ui.h"
 
 extern float rky_aspect;                  /* recomp_manual.c */
 extern int rky_skip_intro;
@@ -51,6 +53,9 @@ static RkySettings *s_set;
 static int s_mode, s_res, s_aspect_i, s_scale, s_filter_i, s_vsync, s_fps, s_intro;
 static int s_sel;
 static int s_window_dirty;
+/* 1 over the running game (changes reach the renderer at once); 0 in the
+ * launcher, where they are only saved and apply when the game starts. */
+static int s_live;
 
 static int nearest_res(int w, int h)
 {
@@ -60,10 +65,19 @@ static int nearest_res(int w, int h)
     return 2;
 }
 
+static int s_set_filter = -1;   /* the filter chosen in this run, or -1 */
+
 static void load_values(void)
 {
     int scale, aniso, shadow, msaa;
-    nv2a_quality_get(&scale, &aniso, &shadow, &msaa);
+    if (s_live) {
+        nv2a_quality_get(&scale, &aniso, &shadow, &msaa);
+    } else {
+        const char *f = s_set->texture_filter;
+        aniso = s_set_filter >= 0 ? s_set_filter
+              : !strcmp(f, "original") || !strcmp(f, "console") ? 0
+              : !strcmp(f, "smooth") ? 16 : atoi(f);
+    }
     s_mode = s_set->mode;
     s_res = nearest_res(s_set->width, s_set->height);
     s_aspect_i = 0;
@@ -107,9 +121,8 @@ static int auto_scale(void)
 {
     int w = 1920, h = 1080, x0, y0, dw, dh;
     if (s_mode != RKY_WINDOWED) {
-        SDL_DisplayMode dm;
-        if (SDL_GetDesktopDisplayMode(0, &dm) == 0)
-            w = dm.w, h = dm.h;
+        w = GetSystemMetrics(SM_CXSCREEN);
+        h = GetSystemMetrics(SM_CYSCREEN);
     } else {
         w = RES[s_res][0];
         h = RES[s_res][1];
@@ -151,14 +164,13 @@ static void change(int dir)
         s_set->aspect = ASPECTS[s_aspect_i];
         a = ASPECTS[s_aspect_i];
         if (a <= 0) {
-            int w = s_mode == RKY_WINDOWED ? RES[s_res][0] : 0, h = s_mode == RKY_WINDOWED ? RES[s_res][1] : 0;
-            SDL_DisplayMode dm;
-            if (!w && SDL_GetDesktopDisplayMode(0, &dm) == 0)
-                w = dm.w, h = dm.h;
+            int w = s_mode == RKY_WINDOWED ? RES[s_res][0] : GetSystemMetrics(SM_CXSCREEN);
+            int h = s_mode == RKY_WINDOWED ? RES[s_res][1] : GetSystemMetrics(SM_CYSCREEN);
             a = h ? (double)w / h : 16.0 / 9.0;
         }
         if (a < 4.0 / 3.0) a = 4.0 / 3.0;
-        rky_apply_aspect((float)a);
+        if (s_live)
+            rky_apply_aspect((float)a);
         break;
     }
     case OPT_SCALE:
@@ -166,27 +178,34 @@ static void change(int dir)
         if (s_scale) snprintf(buf, sizeof buf, "%d", s_scale);
         save("graphics", "render_scale", s_scale ? buf : "auto");
         s_set->render_scale = s_scale;
-        nv2a_quality_get(&scale, &aniso, &shadow, &msaa);
-        nv2a_set_quality(s_scale ? s_scale : auto_scale(), aniso, shadow, msaa);
+        if (s_live) {
+            nv2a_quality_get(&scale, &aniso, &shadow, &msaa);
+            nv2a_set_quality(s_scale ? s_scale : auto_scale(), aniso, shadow, msaa);
+        }
         break;
     case OPT_FILTER:
         s_filter_i = (s_filter_i + 5 + dir) % 5;
         if (FILTERS[s_filter_i]) snprintf(buf, sizeof buf, "%d", FILTERS[s_filter_i]);
         save("graphics", "texture_filter", FILTERS[s_filter_i] ? buf : "original");
-        nv2a_quality_get(&scale, &aniso, &shadow, &msaa);
-        nv2a_set_quality(scale, FILTERS[s_filter_i], shadow, msaa);
+        s_set_filter = FILTERS[s_filter_i];
+        if (s_live) {
+            nv2a_quality_get(&scale, &aniso, &shadow, &msaa);
+            nv2a_set_quality(scale, FILTERS[s_filter_i], shadow, msaa);
+        }
         break;
     case OPT_VSYNC:
         s_vsync = (s_vsync + 3 + dir) % 3;
         save("display", "vsync", s_vsync == 0 ? "off" : s_vsync == 1 ? "on" : "adaptive");
         s_set->vsync = s_vsync;
-        nv2a_present_set_vsync(s_vsync);
+        if (s_live)
+            nv2a_present_set_vsync(s_vsync);
         break;
     case OPT_FPS:
         s_fps = !s_fps;
         save("display", "show_fps", s_fps ? "on" : "off");
         s_set->show_fps = s_fps;
-        nv2a_present_set_show_fps(s_fps != 0);
+        if (s_live)
+            nv2a_present_set_show_fps(s_fps != 0);
         break;
     case OPT_INTRO:
         s_intro = !s_intro;
@@ -199,7 +218,8 @@ static void change(int dir)
 
 /* ── Input (main thread -> renderer thread) ────────────────── */
 
-enum { IN_UP = 1, IN_DOWN, IN_LEFT, IN_RIGHT, IN_OK, IN_CLOSE };
+enum { IN_UP = RKY_IN_UP, IN_DOWN = RKY_IN_DOWN, IN_LEFT = RKY_IN_LEFT, IN_RIGHT = RKY_IN_RIGHT,
+       IN_OK = RKY_IN_OK, IN_CLOSE = RKY_IN_CLOSE };
 static volatile LONG s_open_req;
 static volatile LONG s_queue[32];
 static volatile LONG s_qhead, s_qtail;
@@ -269,129 +289,56 @@ void nv2a_window_event_hook(const void *sdl_event)
     }
 }
 
-/* ── Drawing ───────────────────────────────────────────────── */
+/* ── The page (overlay and launcher) ───────────────────────── */
 
-typedef struct {
-    HDC dc;
-    HBITMAP bmp;
-    uint32_t *bits;
-    int w, h;
-    HFONT title, row;
-} Canvas;
-
-static Canvas s_cv;
-
-static void canvas_size(int w, int h)
+void rky_options_page_open(int live)
 {
-    BITMAPINFO bi = { 0 };
-    if (s_cv.w == w && s_cv.h == h)
-        return;
-    if (!s_cv.dc)
-        s_cv.dc = CreateCompatibleDC(NULL);
-    if (s_cv.bmp)
-        DeleteObject(s_cv.bmp);
-    if (s_cv.title) DeleteObject(s_cv.title);
-    if (s_cv.row) DeleteObject(s_cv.row);
-    bi.bmiHeader.biSize = sizeof bi.bmiHeader;
-    bi.bmiHeader.biWidth = w;
-    bi.bmiHeader.biHeight = -h;
-    bi.bmiHeader.biPlanes = 1;
-    bi.bmiHeader.biBitCount = 32;
-    s_cv.bmp = CreateDIBSection(s_cv.dc, &bi, DIB_RGB_COLORS, (void **)&s_cv.bits, NULL, 0);
-    SelectObject(s_cv.dc, s_cv.bmp);
-    s_cv.w = w;
-    s_cv.h = h;
-    s_cv.title = CreateFontA(-h / 11, 0, 0, 0, FW_BLACK, 0, 0, 0, ANSI_CHARSET, 0, 0,
-                             ANTIALIASED_QUALITY, 0, "Arial Black");
-    s_cv.row = CreateFontA(-h / 26, 0, 0, 0, FW_BOLD, 0, 0, 0, ANSI_CHARSET, 0, 0,
-                           ANTIALIASED_QUALITY, 0, "Arial Black");
-    SetBkMode(s_cv.dc, TRANSPARENT);
+    s_live = live;
+    s_sel = 0;
+    s_window_dirty = 0;
+    load_values();
 }
 
-static uint32_t blend(uint32_t dst, uint32_t r, uint32_t g, uint32_t b, uint32_t a)
+void rky_options_page_draw(uint32_t *out, int w, int h, const uint32_t *backdrop,
+                           int x0, int y0, int pw, int ph)
 {
-    uint32_t dr = dst >> 16 & 0xFF, dg = dst >> 8 & 0xFF, db = dst & 0xFF;
-    dr = (dr * (255 - a) + r * a) / 255;
-    dg = (dg * (255 - a) + g * a) / 255;
-    db = (db * (255 - a) + b * a) / 255;
-    return 0xFF000000u | dr << 16 | dg << 8 | db;
-}
-
-/* A gold bar like the one under the game's selected menu item: olive gold,
- * brighter in the middle, fading out at both ends. */
-static void gold_bar(int x0, int y0, int x1, int y1)
-{
-    int w = x1 - x0;
-    for (int y = y0; y < y1; y++) {
-        float v = 1.0f - 2.0f * (float)abs(2 * (y - y0) - (y1 - y0)) / (float)(y1 - y0) * 0.35f;
-        for (int x = x0; x < x1; x++) {
-            float e = (float)(x - x0) / (float)w;
-            float fade = e < 0.12f ? e / 0.12f : e > 0.88f ? (1.0f - e) / 0.12f : 1.0f;
-            uint32_t *p = &s_cv.bits[y * s_cv.w + x];
-            *p = blend(*p, (uint32_t)(150 * v), (uint32_t)(140 * v), (uint32_t)(40 * v),
-                       (uint32_t)(230 * fade));
-        }
-    }
-    for (int x = x0; x < x1; x++) {   /* thin highlight lines above and below */
-        float e = (float)(x - x0) / (float)w;
-        uint32_t a = (uint32_t)(200 * (e < 0.5f ? e * 2 : (1 - e) * 2));
-        s_cv.bits[y0 * s_cv.w + x] = blend(s_cv.bits[y0 * s_cv.w + x], 230, 210, 120, a);
-        s_cv.bits[(y1 - 1) * s_cv.w + x] = blend(s_cv.bits[(y1 - 1) * s_cv.w + x], 230, 210, 120, a);
-    }
-}
-
-static void text(const char *s, int x, int y, int w, int h, UINT align, COLORREF c, HFONT f, int shadow)
-{
-    RECT r = { x, y, x + w, y + h };
-    SelectObject(s_cv.dc, f);
-    if (shadow) {
-        RECT rs = { x + shadow, y + shadow, x + w + shadow, y + h + shadow };
-        SetTextColor(s_cv.dc, RGB(0, 0, 0));
-        DrawTextA(s_cv.dc, s, -1, &rs, align | DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX);
-    }
-    SetTextColor(s_cv.dc, c);
-    DrawTextA(s_cv.dc, s, -1, &r, align | DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX);
-}
-
-static void draw(uint32_t *px, int w, int h, const uint32_t *backdrop)
-{
-    int x0, y0, pw, ph, rowh, top, sh;
-    canvas_size(w, h);
-    GdiFlush();
-    /* The frozen frame, darkened. */
-    for (int i = 0; i < w * h; i++) {
-        uint32_t c = backdrop ? backdrop[i] : 0;
-        s_cv.bits[i] = 0xFF000000u | ((c >> 16 & 0xFF) * 2 / 7) << 16 |
-                       ((c >> 8 & 0xFF) * 2 / 7) << 8 | (c & 0xFF) * 2 / 7;
-    }
-    nv2a_present_picture_rect(w, h, &x0, &y0, &pw, &ph);
-    /* Lay out on the 4:3 middle of the picture, as the game's menus are. */
-    pw = ph * 4 / 3 < pw ? ph * 4 / 3 : pw;
-    x0 = (w - pw) / 2;
-    sh = h / 300 + 1;
-    text("PC OPTIONS", x0, y0 + ph / 14, pw, ph / 7, DT_CENTER, RGB(244, 212, 110), s_cv.title, sh * 2);
-    rowh = ph / 15;
-    top = y0 + ph * 22 / 100;
+    static char labels[OPT_COUNT][64], values[OPT_COUNT][64];
+    RkyUiRow rows[OPT_COUNT];
     for (int i = 0; i < OPT_COUNT; i++) {
-        char label[64], value[64];
-        int y = top + i * rowh + (i == OPT_BACK ? rowh / 3 : 0);
-        row_text(i, label, value, sizeof value);
-        if (i == s_sel) {
-            GdiFlush();
-            gold_bar(x0 + pw / 16, y + rowh / 10, x0 + pw - pw / 16, y + rowh - rowh / 10);
-        }
-        if (i == OPT_BACK) {
-            text(label, x0, y, pw, rowh, DT_CENTER, RGB(255, 255, 255), s_cv.row, sh);
-        } else {
-            text(label, x0 + pw / 8, y, pw / 2, rowh, DT_LEFT, RGB(255, 255, 255), s_cv.row, sh);
-            text(value, x0 + pw / 2, y, pw * 3 / 8, rowh, DT_RIGHT,
-                 i == s_sel ? RGB(255, 236, 160) : RGB(225, 225, 225), s_cv.row, sh);
-        }
+        row_text(i, labels[i], values[i], sizeof values[i]);
+        rows[i].label = labels[i];
+        rows[i].value = i == OPT_BACK ? NULL : values[i];
+        rows[i].gap_before = i == OPT_BACK;
+        rows[i].dim = i == OPT_RES && s_mode != RKY_WINDOWED;
     }
-    text("Up/Down: choose    Left/Right: change    Esc / B: back", x0, y0 + ph - ph / 9, pw, ph / 14,
-         DT_CENTER, RGB(200, 200, 200), s_cv.row, sh);
-    GdiFlush();
-    memcpy(px, s_cv.bits, (size_t)w * h * 4);
+    rky_ui_menu(out, w, h, backdrop, x0, y0, pw, ph, "PC OPTIONS", rows, OPT_COUNT, s_sel,
+                s_live ? NULL : "Changes apply when the game starts.",
+                "Up/Down: choose    Left/Right: change    Esc / B: back");
+}
+
+/* 1: the page closed. */
+int rky_options_page_input(int in)
+{
+    if (in == IN_UP) s_sel = (s_sel + OPT_COUNT - 1) % OPT_COUNT;
+    else if (in == IN_DOWN) s_sel = (s_sel + 1) % OPT_COUNT;
+    else if (in == IN_LEFT && s_sel != OPT_BACK) change(-1);
+    else if ((in == IN_RIGHT || in == IN_OK) && s_sel != OPT_BACK) change(1);
+    else if (in == IN_CLOSE || (in == IN_OK && s_sel == OPT_BACK)) {
+        if (s_live && s_window_dirty)
+            nv2a_window_request(s_mode == RKY_WINDOWED ? RES[s_res][0] : 0,
+                                s_mode == RKY_WINDOWED ? RES[s_res][1] : 0, s_mode);
+        return 1;
+    }
+    return 0;
+}
+
+/* Choose row r (a mouse click in the launcher), then act as OK. */
+int rky_options_page_click(int r)
+{
+    if (r < 0 || r >= OPT_COUNT)
+        return 0;
+    s_sel = r;
+    return rky_options_page_input(IN_OK);
 }
 
 /* ── Overlay hooks (renderer thread) ───────────────────────── */
@@ -408,28 +355,23 @@ bool nv2a_overlay_wanted(void)
 
 bool nv2a_overlay_frame(uint32_t *px, int w, int h, const uint32_t *backdrop)
 {
-    int in;
+    int in, x0, y0, pw, ph;
     if (!s_open) {
         s_open = 1;
-        s_sel = 0;
-        s_window_dirty = 0;
-        load_values();
+        rky_options_page_open(1);
         while (pop()) {}
     }
     while ((in = pop())) {
-        if (in == IN_UP) s_sel = (s_sel + OPT_COUNT - 1) % OPT_COUNT;
-        else if (in == IN_DOWN) s_sel = (s_sel + 1) % OPT_COUNT;
-        else if (in == IN_LEFT && s_sel != OPT_BACK) change(-1);
-        else if ((in == IN_RIGHT || in == IN_OK) && s_sel != OPT_BACK) change(1);
-        else if (in == IN_CLOSE || (in == IN_OK && s_sel == OPT_BACK)) {
-            if (s_window_dirty)
-                nv2a_window_request(s_mode == RKY_WINDOWED ? RES[s_res][0] : 0,
-                                    s_mode == RKY_WINDOWED ? RES[s_res][1] : 0, s_mode);
+        if (rky_options_page_input(in)) {
             s_open = 0;
             return false;
         }
     }
-    draw(px, w, h, backdrop);
+    nv2a_present_picture_rect(w, h, &x0, &y0, &pw, &ph);
+    /* Lay out on the 4:3 middle of the picture, as the game's menus are. */
+    pw = ph * 4 / 3 < pw ? ph * 4 / 3 : pw;
+    x0 = (w - pw) / 2;
+    rky_options_page_draw(px, w, h, backdrop, x0, y0, pw, ph);
     Sleep(15);
     return true;
 }

@@ -35,7 +35,7 @@ foreach ($s in ($Steps -split "," | Where-Object { $_ })) {
     $events += [pscustomobject]@{ T = [double]$t; What = $key }
 }
 $events = $events | Sort-Object T
-$p = Start-Process (Join-Path $build "Rocky.exe") -ArgumentList "`"$root\game`"" -WorkingDirectory $build -PassThru `
+$p = Start-Process (Join-Path $build "Rocky.exe") -ArgumentList "--play `"$root\game`"" -WorkingDirectory $build -PassThru `
     -RedirectStandardOutput (Join-Path $build "vk_stdout.txt") `
     -RedirectStandardError (Join-Path $build "vk_stderr.txt")
 $clock = [Diagnostics.Stopwatch]::StartNew()

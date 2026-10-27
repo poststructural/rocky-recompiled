@@ -503,11 +503,33 @@ static int install_with_progress(const char *src, const char *save_dir, char *ou
     return ui.ok;
 }
 
+/* Ask for the disc image (or an extracted default.xbe) and install it. 1 and
+ * the folder in out on success; 0 if cancelled or failed (the reason was
+ * shown). owner: the window to keep the dialogs over, or NULL. */
+int rky_install_dialog(void *owner, const char *save_dir, char *out, size_t n)
+{
+    char file[MAX_PATH * 2] = "";
+    OPENFILENAMEA ofn = { sizeof ofn };
+    ofn.hwndOwner = (HWND)owner;
+    ofn.lpstrFilter = "Rocky disc image or default.xbe\0*.iso;*.xiso;*.zip;*.7z;default.xbe\0"
+                      "All files\0*.*\0";
+    ofn.lpstrFile = file;
+    ofn.nMaxFile = sizeof file;
+    ofn.lpstrTitle = "Choose your Rocky disc image";
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+    if (!GetOpenFileNameA(&ofn))
+        return 0;
+    s_err[0] = 0;
+    if (install_with_progress(file, save_dir, out, n))
+        return 1;
+    MessageBoxA((HWND)owner, s_err[0] ? s_err : "The installation failed.",
+                "Rocky Recompiled", MB_OK | MB_ICONERROR);
+    return 0;
+}
+
 int rky_first_run(const char *save_dir, char *out, size_t n)
 {
     for (;;) {
-        char file[MAX_PATH * 2] = "";
-        OPENFILENAMEA ofn = { sizeof ofn };
         int r = MessageBoxA(NULL,
             "Rocky Recompiled needs your copy of Rocky for the original Xbox (USA).\n\n"
             "Choose its disc image (.iso, or the .zip or .7z it came in), or the "
@@ -516,18 +538,7 @@ int rky_first_run(const char *save_dir, char *out, size_t n)
             "Rocky Recompiled", MB_OKCANCEL | MB_ICONINFORMATION);
         if (r != IDOK)
             return 0;
-        ofn.lpstrFilter = "Rocky disc image or default.xbe\0*.iso;*.xiso;*.zip;*.7z;default.xbe\0"
-                          "All files\0*.*\0";
-        ofn.lpstrFile = file;
-        ofn.nMaxFile = sizeof file;
-        ofn.lpstrTitle = "Choose your Rocky disc image";
-        ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
-        if (!GetOpenFileNameA(&ofn))
-            continue;
-        s_err[0] = 0;
-        if (install_with_progress(file, save_dir, out, n))
+        if (rky_install_dialog(NULL, save_dir, out, n))
             return 1;
-        MessageBoxA(NULL, s_err[0] ? s_err : "The installation failed.",
-                    "Rocky Recompiled", MB_OK | MB_ICONERROR);
     }
 }

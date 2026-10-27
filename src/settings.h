@@ -20,11 +20,17 @@ typedef struct RkySettings {
     char texture_filter[16];
     /* [game] */
     int skip_intro;
+    /* [launcher] */
+    int skip_launcher;      /* straight into the game */
+    int update_check;       /* look for a new release when the launcher opens */
     char path[4200];        /* where the file was read from */
 } RkySettings;
 
 /* exe_dir ends in a separator; save_dir does not. */
 void rky_settings_load(RkySettings *s, const char *exe_dir, const char *save_dir);
+
+/* Hand the renderer its settings (NV2A_* switches; set ones are kept). */
+void rky_settings_apply_env(const RkySettings *s);
 
 /* The render scale for a picture of out_w x out_h pixels: the smallest whole
  * multiple of 640x480 at least as large on both axes, so the picture is never

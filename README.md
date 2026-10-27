@@ -16,6 +16,11 @@ setup and exhibition matches, at 60 fps with music, on the Vulkan build.
 
 - Fights in widescreen and ultrawide through the game's own 16:9 mode
   (Hor+); menus and movies at 4:3 with side bars.
+- **Launcher** before the game, in the same look: Play, PC Options, Mods
+  (switch each on or off), Game Files (install from your disc image), Updates
+  (from the GitLab releases; saves, settings and mods are kept), Open Saves
+  Folder. `Rocky.exe --play` skips it, `--update` updates from the command
+  line; `skip_launcher = on` in settings.ini goes straight to the game.
 - First run asks for your disc: the ISO (plain or a full Redump dump), the
   .zip/.7z it came in, or the `default.xbe` of an extracted copy. It checks
   that it is the USA retail release and installs the files once to
