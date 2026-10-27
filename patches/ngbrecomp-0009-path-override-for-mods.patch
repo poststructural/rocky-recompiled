@@ -1,0 +1,44 @@
+diff --git a/xboxrecomp/src/kernel/kernel.h b/xboxrecomp/src/kernel/kernel.h
+index c86a448..b2521cd 100644
+--- a/xboxrecomp/src/kernel/kernel.h
++++ b/xboxrecomp/src/kernel/kernel.h
+@@ -569,6 +569,12 @@ const wchar_t *xbox_LastHostPath(void);
+ 
+ BOOL xbox_translate_path(const char* xbox_path, xbox_host_char* host_path_buf, DWORD buf_size);
+ 
++/* Set by a host to serve some of the game's files from elsewhere (mods).
++ * Called for paths in the game's folders only, with the part below the
++ * device (e.g. "ANIMS\\FIGHTING\\FIGHTING.PAK") and the translated host
++ * path, which it may replace. Windows backend. */
++extern void (*xbox_path_override)(const char *rel, xbox_host_char *host_path, DWORD size);
++
+ /* ============================================================================
+  * Pool Allocator (kernel_pool.c)
+  * ============================================================================ */
+diff --git a/xboxrecomp/src/kernel/kernel_path.c b/xboxrecomp/src/kernel/kernel_path.c
+index a05cdf7..c4cb043 100644
+--- a/xboxrecomp/src/kernel/kernel_path.c
++++ b/xboxrecomp/src/kernel/kernel_path.c
+@@ -33,6 +33,9 @@ static int match_prefix(const char* path, const char* prefix)
+     return i;
+ }
+ 
++/* Mods and the like: see kernel.h. */
++void (*xbox_path_override)(const char *rel, xbox_host_char *host_path, DWORD size);
++
+ /* A device-path translation rule, shared by both backends. */
+ typedef struct {
+     const char* prefix;     /* Xbox path prefix (backslash form)         */
+@@ -462,6 +465,12 @@ translate:
+                 host_path_buf[--n] = L'\0';
+         }
+ 
++        /* A host may serve files of the game's own folders from elsewhere
++         * (mods): it gets the path below the device and may rewrite the
++         * host path. Save-folder paths are never offered. */
++        if (xbox_path_override && base_dir == s_game_dir)
++            xbox_path_override(remainder, host_path_buf, buf_size);
++
+         XBOX_TRACE(XBOX_LOG_PATH, "%s -> %S", xbox_path, host_path_buf);
+         xbox_remember_host_path(host_path_buf);
+         return TRUE;

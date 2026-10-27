@@ -25,6 +25,11 @@ setup and exhibition matches, at 60 fps with music, on the Vulkan build.
   menus: F1, or Back + Start on a controller. Display mode, window size,
   aspect ratio, render resolution, texture filtering, V-Sync, FPS counter,
   skip intro; most apply at once, all are saved.
+- **Mods**: put a mod in `mods/<name>/` beside the exe, with files at their
+  disc paths (e.g. `mods/MyRing/ARENAS/MADISON/MADISON.PAK`); they replace
+  the game's files. Mods apply in name order, a later one winning; a file
+  named `disabled` in a mod's folder switches it off. Changed archives are
+  re-copied into the game's hard-disk cache automatically.
 - `settings.ini` beside the exe: window or fullscreen, resolution, aspect,
   render scale, `skip_intro` (skips the three boot movies).
 - Keyboard controls as in AnimaniacsRecompiled (Enter = Start, Space/K = A,

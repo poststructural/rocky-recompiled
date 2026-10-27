@@ -74,6 +74,7 @@ add_executable(${PROJECT_NAME}
     ${RKY_ROOT}/src/settings.c
     ${RKY_ROOT}/src/install.c
     ${RKY_ROOT}/src/options_menu.c
+    ${RKY_ROOT}/src/mods.c
     ${RKY_ROOT}/src/recomp_manual.c
     $<TARGET_OBJECTS:rky_gen>)
 target_compile_definitions(${PROJECT_NAME} PRIVATE RKY_NV2A_VK
