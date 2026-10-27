@@ -46,8 +46,9 @@ functions when available. Neither is part of the built game.
 
 ## The game
 
-*Rocky* © Warner Bros. Entertainment, developed by
-Warthog and published by Ignition Entertainment. None of the game's data is in
-this repository; its code is translated from the player's own copy when
-building. `src/recomp_manual.c` holds hand-written replacements for a few of
+The *Rocky* interactive game is © 2002 Rage Games Limited (developed by Rage
+Newcastle Studio, published in North America by Ubi Soft); "Rocky" and the
+Rocky films are © United Artists Corporation (MGM). Bink video is © RAD Game
+Tools. None of the game's data is in this repository or in a release; its
+code is translated from the player's own copy when building. `src/recomp_manual.c` holds hand-written replacements for a few of
 the game's functions.

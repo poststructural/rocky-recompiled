@@ -69,7 +69,13 @@ target_link_libraries(rky_gen PRIVATE platform)
 target_compile_options(rky_gen PRIVATE
     -O2 -fno-strict-aliasing -fwrapv -w)
 
+# The icon and version resource.
+get_filename_component(RKY_ROOT_NATIVE ${RKY_ROOT} ABSOLUTE)
+configure_file(${RKY_ROOT}/src/rocky.rc.in ${CMAKE_BINARY_DIR}/rocky.rc @ONLY)
+enable_language(RC)
+
 add_executable(${PROJECT_NAME}
+    ${CMAKE_BINARY_DIR}/rocky.rc
     ${RKY_ROOT}/src/main_vk.c
     ${RKY_ROOT}/src/settings.c
     ${RKY_ROOT}/src/install.c

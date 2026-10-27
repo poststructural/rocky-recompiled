@@ -665,7 +665,10 @@ int main(int argc, char **argv)
         int win_w, win_h;
         double aspect;
         resolve_display(&s_settings, &win_w, &win_h, &aspect);
-        if (nv2a_window_create("Rocky", win_w, win_h,
+        /* The window takes the exe's icon (resource 1, src/rocky.rc.in). */
+        SDL_SetHint("SDL_WINDOWS_INTRESOURCE_ICON", "1");
+        SDL_SetHint("SDL_WINDOWS_INTRESOURCE_ICON_SMALL", "1");
+        if (nv2a_window_create("Rocky Recompiled", win_w, win_h,
                                s_settings.mode == RKY_WINDOWED ? 0 : 1,
                                aspect, s_settings.vsync) != 0) {
             fprintf(stderr, "Cannot open the game window.\n");

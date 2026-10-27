@@ -19,3 +19,4 @@
 *.log
 stderr.txt
 /build-dev/
+/dist/
