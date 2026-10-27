@@ -329,6 +329,18 @@ static void save_dir_path(char *out, size_t n)
     if (env && *env) { snprintf(out, n, "%s", env); return; }
 #if defined(_WIN32)
     {
+        /* Portable: a portable.txt beside the exe keeps saves, the installed
+         * game files and log.txt in userdata/ beside it (a USB stick). */
+        char p[4096];
+        exe_dir(p, sizeof p);
+        strncat(p, "portable.txt", sizeof p - strlen(p) - 1);
+        if (GetFileAttributesA(p) != INVALID_FILE_ATTRIBUTES) {
+            exe_dir(out, n);
+            strncat(out, "userdata", n - strlen(out) - 1);
+            return;
+        }
+    }
+    {
         const char *base = getenv("LOCALAPPDATA");
         snprintf(out, n, "%s/RockyRecompiled", base && *base ? base : ".");
     }

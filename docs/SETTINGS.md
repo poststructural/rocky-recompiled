@@ -40,6 +40,12 @@ the ring at the sides); menus and movies stay 4:3 with side bars.
 | `skip_launcher` | `on` starts the game straight away | `off` |
 | `update_check` | `on` looks for a new release when the launcher opens | `on` |
 
+## Portable mode
+
+An empty file named `portable.txt` beside `Rocky.exe` keeps everything in
+`userdata\` beside it instead of `%LOCALAPPDATA%\RockyRecompiled`: saves, the
+installed game files, the game's cache and `log.txt`.
+
 ## Command line
 
 | | |
