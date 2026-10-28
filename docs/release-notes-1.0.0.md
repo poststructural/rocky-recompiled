@@ -23,6 +23,11 @@ of an extracted copy) and installs the game files once.
 - Updates from this page, from the launcher (saves, settings and mods kept).
 - Portable mode (`portable.txt` beside the exe).
 
+**Known issues**
+
+- On a widescreen window the in-match pause menu is stretched to the
+  window's shape (the fight HUD and all other menus are fine).
+
 **Needs** Windows 10 or 11 (64-bit) and a GPU with Vulkan 1.3 drivers.
 
 Not affiliated with or endorsed by Rage Games, Ubi Soft, MGM or United

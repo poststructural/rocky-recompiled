@@ -1,8 +1,8 @@
 # Rocky Recompiled 1.0 plan
 
 What is left between the playable build and a 1.0 release on GitLab. LAN
-multiplayer is built in its own worktree (`RockyRecompiled-net`, branch
-`netplay`, thread "Add LAN multiplayer to Rocky") and merges in before 1.0.
+multiplayer (worktree `RockyRecompiled-net`, branch `netplay`) is out of
+scope for 1.0 and ships later.
 
 ## Done
 
@@ -23,10 +23,10 @@ multiplayer is built in its own worktree (`RockyRecompiled-net`, branch
 ## Left
 
 - A license for the project's own code (Austin's choice; MIT suggested).
-- Merge `netplay` when it is ready (it numbers runtime patches 0010-0019;
-  expect small merges in `vk/CMakeLists.txt` and `src/main_vk.c`).
-- Known minor issue: the in-match pause menu is 2D drawn at the window's
-  shape (the match HUD uses the game's own 16:9 layout and is fine).
+- Known minor issue, listed in the release notes and left for 1.0.1: the
+  in-match pause menu is 2D drawn at the window's shape (the match HUD uses
+  the game's own 16:9 layout and is fine). Fixing it means finding the 2D
+  draw path and squeezing its vertices, which needs screenshot runs.
 - Release: bump the version in `vk/CMakeLists.txt` if needed, run
   `scripts/package.ps1`, tag `v1.0.0`, create the GitLab release with the
   two asset links named `RockyRecompiled-1.0.0.zip` and
