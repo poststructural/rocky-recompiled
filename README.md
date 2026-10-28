@@ -104,6 +104,6 @@ docs/NOTES.md           bring-up notes
 
 ## Licenses
 
-Third-party parts and their licenses are listed in
+The project's own code is MIT licensed ([LICENSE](LICENSE)). Third-party parts and their licenses are listed in
 [THIRD_PARTY.md](THIRD_PARTY.md). *Rocky* belongs to its rights holders; no
 game data is included here.
