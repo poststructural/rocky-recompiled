@@ -133,15 +133,35 @@ void sub_0009BF40(void)
  * after one. Checked from a host thread, so nothing in the frame loop waits
  * on it. */
 #define RKY_LOOP_STATE 0x0010A70Cu
+/* The in-match pause menu is the same 640x480 2D, drawn over the fight. The
+ * per-frame update (0x00023E40) opens it when 0x00263394 asks for a pause:
+ * it sets 0x001206F0 to 1 and calls 0x00013D40, and clears 0x001206F0 on
+ * resume. While it is set the whole match is shown as on the console: 4:3
+ * projection and picture, so neither the menu nor the fight behind it is
+ * stretched. */
+#define RKY_PAUSED 0x001206F0u
 extern void nv2a_present_set_aspect(double aspect);
 static volatile int s_movie_playing;
+static volatile int s_paused_43;
+
+static void set_projection(float aspect)
+{
+    memcpy((void *)((uintptr_t)g_xbox_mem_offset + 0x0010FF84u), &aspect, 4);
+    GUEST32(0x0026339Cu) = aspect > 4.0f / 3.0f + 0.01f;
+}
 
 static DWORD WINAPI scene_shape_thread(LPVOID unused)
 {
     double shown = 0.0;
     (void)unused;
     for (;;) {
-        int wide = !s_movie_playing && GUEST32(RKY_LOOP_STATE) != 0xFFFFFFFFu;
+        uint32_t state = GUEST32(RKY_LOOP_STATE);
+        int paused = state != 0xFFFFFFFFu && GUEST32(RKY_PAUSED) != 0;
+        if (paused != s_paused_43) {
+            s_paused_43 = paused;
+            set_projection(paused ? 4.0f / 3.0f : rky_aspect);
+        }
+        int wide = !s_movie_playing && !paused && state != 0xFFFFFFFFu;
         double want = wide ? rky_aspect : 4.0 / 3.0;
         if (want != shown) {
             nv2a_present_set_aspect(want);
@@ -168,8 +188,8 @@ void rky_apply_aspect(float aspect)
 {
     float a = aspect > 4.0f / 3.0f + 0.01f ? aspect : 4.0f / 3.0f;
     rky_aspect = aspect;
-    memcpy((void *)((uintptr_t)g_xbox_mem_offset + 0x0010FF84u), &a, 4);
-    GUEST32(0x0026339Cu) = a > 4.0f / 3.0f + 0.01f;
+    if (!s_paused_43)   /* (paused: the scene-shape thread sets it on resume) */
+        set_projection(a);
     scene_shape_start();
 }
 

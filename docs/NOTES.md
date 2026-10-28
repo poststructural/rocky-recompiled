@@ -70,9 +70,7 @@
   every slot of the runtime's full table. Of Rocky's 121 imports only 37
   (FscSetCacheSize) and 91 (IoDismountVolumeByName) are unresolved; nothing
   has failed from them.
-- The pause menu and other 2D drawn during a match are stretched to the
-  window's shape (the match HUD itself is the game's own 16:9 layout).
-- Audio peaks clip.
+- Audio peaks used to clip; now soft-limited (`patches/ngbrecomp-0020`).
 
 ## Bring-up tools
 
@@ -93,3 +91,23 @@
 - `scripts/contact_sheet.ps1`, `scripts/winshot.ps1`, `scripts/disx.py <va>`,
   `scripts/guest_mem.py peek <va[:*][:*+off]>`, `scripts/thread_stacks.py`,
   `scripts/sample_profile.py`, `scripts/build_vk.ps1 [-Regen]`.
+
+## Pause screen at 4:3 (1.0)
+
+The pause menu is the frontend's 640x480 2D, drawn over the fight, so on a
+wide window it was stretched. The per-frame update `0x00023E40` opens it
+when `0x00263394` asks for a pause (sets `0x001206F0 = 1`, calls
+`0x00013D40`) and clears `0x001206F0` on resume. Found by dumping guest
+.data/.bss every 3 s across a scripted pause (only those two, plus some
+per-pad and UI words, are 1 exactly while paused) and checked in the
+disassembly of `0x00023E40`. While it is set, the scene-shape thread in
+`src/recomp_manual.c` sets the projection (`0x0010FF84`, `0x0026339C`)
+and the presenter to 4:3; on resume it puts the wide values back. GPU
+captures show the paused fight re-rendered at 4:3 and the fight wide again
+after.
+
+Unattended picture tests that never take the screen: `NV2A_HIDDEN_WINDOW=1`
+(`patches/ngbrecomp-0021`) with `NV2A_CAPTURE=<abs prefix>` and
+`NV2A_CAPTURE_EVERY=<presents>`, input from `RECOMP_PAD_SCRIPT`.
+Exhibition path: `20000:start,26000:down,28000:a`, then `a` every 3 s to
+about 46 s; the fight starts near 50 s.

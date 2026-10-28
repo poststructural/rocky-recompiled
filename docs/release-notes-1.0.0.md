@@ -14,7 +14,7 @@ of an extracted copy) and installs the game files once.
 - Any resolution, windowed or fullscreen, render scale up to 8x, anisotropic
   filtering.
 - Widescreen and ultrawide fights through the game's own 16:9 mode (more of
-  the ring at the sides); menus and movies kept at 4:3.
+  the ring at the sides); menus, movies and the pause screen kept at 4:3.
 - PC OPTIONS in game (F1, or Back + Start), and a launcher with settings,
   mods, game files and updates.
 - Controllers through SDL (Xbox, PlayStation, Switch and others) and the
@@ -22,11 +22,6 @@ of an extracted copy) and installs the game files once.
 - Mods: files in `mods/<name>/` replace the game's own.
 - Updates from this page, from the launcher (saves, settings and mods kept).
 - Portable mode (`portable.txt` beside the exe).
-
-**Known issues**
-
-- On a widescreen window the in-match pause menu is stretched to the
-  window's shape (the fight HUD and all other menus are fine).
 
 **Needs** Windows 10 or 11 (64-bit) and a GPU with Vulkan 1.3 drivers.
 

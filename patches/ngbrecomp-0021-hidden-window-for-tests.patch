@@ -1,0 +1,29 @@
+diff --git a/xboxrecomp/src/nv2a_vk/host/present_sdl.c b/xboxrecomp/src/nv2a_vk/host/present_sdl.c
+index 7365af0..41700f0 100644
+--- a/xboxrecomp/src/nv2a_vk/host/present_sdl.c
++++ b/xboxrecomp/src/nv2a_vk/host/present_sdl.c
+@@ -373,7 +373,11 @@ int nv2a_window_create(const char *title, int width, int height,
+                                 SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE |
+                                 SDL_WINDOW_ALLOW_HIGHDPI |
+                                 (fullscreen == 1 ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0) |
+-                                (fullscreen == 2 ? SDL_WINDOW_BORDERLESS : 0));
++                                (fullscreen == 2 ? SDL_WINDOW_BORDERLESS : 0) |
++                                /* NV2A_HIDDEN_WINDOW=1: unattended test runs
++                                 * (with NV2A_CAPTURE) that never take the
++                                 * screen or the keyboard focus. */
++                                (getenv("NV2A_HIDDEN_WINDOW") ? SDL_WINDOW_HIDDEN : 0));
+     if (!s_window) {
+         fprintf(stderr, "nv2a: window: %s\n", SDL_GetError());
+         return -1;
+@@ -1260,7 +1264,10 @@ static void present_locked(PGRAPHState *pg, bool on_pfifo)
+                 const char *e = getenv("NV2A_CAPTURE_EVERY");
+                 every = e && atoi(e) > 0 ? atoi(e) : 300;
+             }
+-            if (s_frame % (unsigned)every == (unsigned)every - 1)
++            /* (counted here: a hidden window has no swapchain, so s_frame
++             * stays put) */
++            static unsigned calls;
++            if (++calls % (unsigned)every == 0)
+                 capture_display(pg);
+         }
+     }

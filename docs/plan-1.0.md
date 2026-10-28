@@ -23,10 +23,8 @@ scope for 1.0 and ships later.
 ## Left
 
 - A license for the project's own code (Austin's choice; MIT suggested).
-- Known minor issue, listed in the release notes and left for 1.0.1: the
-  in-match pause menu is 2D drawn at the window's shape (the match HUD uses
-  the game's own 16:9 layout and is fine). Fixing it means finding the 2D
-  draw path and squeezing its vertices, which needs screenshot runs.
+- Done: the in-match pause screen is shown at 4:3 (projection and picture)
+  while 0x001206F0 is set (src/recomp_manual.c).
 - Release: bump the version in `vk/CMakeLists.txt` if needed, run
   `scripts/package.ps1`, tag `v1.0.0`, create the GitLab release with the
   two asset links named `RockyRecompiled-1.0.0.zip` and
