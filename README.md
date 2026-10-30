@@ -5,7 +5,7 @@ Ubi Soft, 2002) into a native executable, built on
 [xboxrecomp](https://github.com/sp00nznet/xboxrecomp) and
 [ngbrecomp](https://github.com/gamboozino/ngbrecomp)'s xboxrecomp fork. The
 pipeline and Vulkan build are carried over from
-[AnimaniacsRecompiled](https://github.com/Unowa001/AnimaniacsRecompiled).
+AnimaniacsRecompiled.
 
 **No game files are included.** You need your own copy of the game.
 
@@ -61,8 +61,8 @@ Vulkan 1.3 drivers. Optional: Ghidra 12.x and a 64-bit JDK 21 for function
 naming.
 
 ```bash
-git clone --recursive https://github.com/Unowa001/RockyRecompiled.git
-cd RockyRecompiled
+git clone --recursive https://github.com/poststructural/rocky-recompiled.git
+cd rocky-recompiled
 pip install capstone
 
 # 1. Extract your disc into game/
@@ -101,6 +101,30 @@ patches/                local patches applied to the toolkits
 scripts/regen.sh        the full XBE -> C pipeline
 docs/NOTES.md           bring-up notes
 ```
+
+## Thanks
+
+None of this would exist without other people's work, and they have our
+deepest thanks:
+
+- **sp00nznet**, for [xboxrecomp](https://github.com/sp00nznet/xboxrecomp),
+  the toolkit that lifts the XBE to C and runs it.
+- **gamboozino**, for [ngbrecomp](https://github.com/gamboozino/ngbrecomp)
+  and its xboxrecomp fork with xemu's NV2A model and Vulkan renderer, which
+  this build runs on.
+- The **[xemu](https://xemu.app/)** developers, whose GPU and audio models
+  are inside `Rocky.exe`.
+- **TGP482** ([SCDA-XBERecomp](https://github.com/TGP482/SCDA-XBERecomp),
+  [BLACK-XBERecomp](https://github.com/TGP482/BLACK-XBERecomp)) and
+  **linkssy2** ([Darkwatch Darker Edition](https://github.com/linkssy2/DarkwatchDarkerEdition),
+  [Urban Chaos Burner Edition](https://github.com/linkssy2/UrbanChaosRiotResponseBurnerEdition)),
+  whose ports set the bar for what an Xbox recomp should feel like on PC.
+
+## Where to find it
+
+Source: [github.com/poststructural/rocky-recompiled](https://github.com/poststructural/rocky-recompiled).
+Releases and updates: [gitlab.com/unowa001/rocky-recomp](https://gitlab.com/unowa001/rocky-recomp/-/releases)
+(the launcher's updater reads these).
 
 ## Licenses
 
