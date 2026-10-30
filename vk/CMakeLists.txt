@@ -81,6 +81,7 @@ add_executable(${PROJECT_NAME}
     ${RKY_ROOT}/src/install.c
     ${RKY_ROOT}/src/options_menu.c
     ${RKY_ROOT}/src/mods.c
+    ${RKY_ROOT}/src/pcpatch.c
     ${RKY_ROOT}/src/ui.c
     ${RKY_ROOT}/src/launcher.c
     ${RKY_ROOT}/src/update.c

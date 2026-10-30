@@ -29,7 +29,10 @@ setup and exhibition matches, at 60 fps with music, on the Vulkan build.
 - **PC OPTIONS** screen over the paused game, in the look of the game's own
   menus: F1, or Back + Start on a controller. Display mode, window size,
   aspect ratio, render resolution, texture filtering, V-Sync, FPS counter,
-  skip intro; most apply at once, all are saved.
+  skip intro, and Quit to Desktop; most apply at once, all are saved.
+- **PC wording**: the game's save messages talk about your PC and its disk
+  instead of the Xbox hard disk and memory units, in all five languages.
+  The reworded text is made at start-up from your own copy of the game.
 - **Mods**: put a mod in `mods/<name>/` beside the exe, with files at their
   disc paths (e.g. `mods/MyRing/ARENAS/MADISON/MADISON.PAK`); they replace
   the game's files. Mods apply in name order, a later one winning; a file

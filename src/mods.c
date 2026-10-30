@@ -12,7 +12,8 @@
  * one. Rocky copies its archives to the hard-disk cache on first use and
  * reads them from there afterwards, so a cached copy of any file a mod adds,
  * changes or stops replacing is deleted at start-up; the game then copies it
- * again, from the mod.
+ * again, from the mod. rky_mods_finish does both once everything that
+ * serves files (mods, the PC wording) is indexed.
  */
 #include <windows.h>
 #include <stdint.h>
@@ -248,8 +249,32 @@ void rky_mods_init(const char *exe_dir, const char *save_dir)
                 s_mods[i].enabled ? "on" : "off", s_mods[i].files);
     }
     qsort(s_files, (size_t)s_count, sizeof *s_files, cmp_file);
+}
+
+void rky_mods_finish(const char *save_dir)
+{
     refresh_cache(save_dir);
     xbox_path_override = s_count ? override : NULL;
+}
+
+int rky_mods_host_path(const char *rel, WCHAR *out, int size)
+{
+    ModFile *f = find(rel);
+    if (!f)
+        return 0;
+    wcsncpy_s(out, (size_t)size, f->host, _TRUNCATE);
+    return 1;
+}
+
+void rky_mods_add_file(const char *rel, const char *path, const char *tag)
+{
+    WIN32_FILE_ATTRIBUTE_DATA fa;
+    if (!GetFileAttributesExA(path, GetFileExInfoStandard, &fa))
+        return;
+    add_file(rel, path, tag,
+             (uint64_t)fa.nFileSizeHigh << 32 | fa.nFileSizeLow,
+             (uint64_t)fa.ftLastWriteTime.dwHighDateTime << 32 | fa.ftLastWriteTime.dwLowDateTime);
+    qsort(s_files, (size_t)s_count, sizeof *s_files, cmp_file);
 }
 
 int rky_mods_list(const RkyModInfo **mods)

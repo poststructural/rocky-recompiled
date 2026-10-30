@@ -38,6 +38,7 @@
 #include "settings.h"
 #include "install.h"
 #include "mods.h"
+#include "pcpatch.h"
 #include "launcher.h"
 #include "update.h"
 
@@ -659,6 +660,8 @@ int main(int argc, char **argv)
         rky_skip_intro = s_settings.skip_intro;
         rky_hud_43 = !s_settings.hud_stretch;
         rky_options_init(&s_settings);   /* src/options_menu.c: F1 */
+        rky_pcpatch_init(s_game_dir, save);   /* src/pcpatch.c: PC wording */
+        rky_mods_finish(save);
     }
     printf("Game directory: %s\n", s_game_dir);
 
