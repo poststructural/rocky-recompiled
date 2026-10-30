@@ -7,7 +7,8 @@
  * row, Left/Right change it, Esc / B / F1 close it. Changes take effect at
  * once where the renderer allows (picture shape, render scale, filtering,
  * V-Sync, frame counter) and otherwise when the screen closes (window mode
- * and size); every change is written to settings.ini.
+ * and size); every change is written to settings.ini. Over the game the
+ * last row is Quit to Desktop, which asks for a second press.
  *
  * The presenter's host overlay (nv2a_overlay_wanted/nv2a_overlay_frame)
  * holds the game at its frame while this draws. The text is drawn with
@@ -35,7 +36,7 @@ extern void nv2a_quality_get(int *render_scale, int *anisotropy, int *shadow_sca
 /* ── Options ───────────────────────────────────────────────── */
 
 enum { OPT_MODE, OPT_RES, OPT_ASPECT, OPT_SCALE, OPT_FILTER, OPT_VSYNC, OPT_FPS,
-       OPT_INTRO, OPT_BACK, OPT_COUNT };
+       OPT_INTRO, OPT_BACK, OPT_QUIT, OPT_COUNT };
 
 static const char *const MODE_NAMES[] = { "Windowed", "Fullscreen", "Borderless" };
 static const int RES[][2] = { { 1280, 720 }, { 1600, 900 }, { 1920, 1080 }, { 2560, 1440 },
@@ -53,6 +54,7 @@ static RkySettings *s_set;
 static int s_mode, s_res, s_aspect_i, s_scale, s_filter_i, s_vsync, s_fps, s_intro;
 static int s_sel;
 static int s_window_dirty;
+static int s_quit_armed;        /* Quit to Desktop chosen once; again quits */
 /* 1 over the running game (changes reach the renderer at once); 0 in the
  * launcher, where they are only saved and apply when the game starts. */
 static int s_live;
@@ -94,11 +96,18 @@ static void load_values(void)
     s_intro = s_set->skip_intro;
 }
 
+/* Quit to Desktop is offered over the game only; the launcher has its own. */
+static int row_count(void)
+{
+    return s_live ? OPT_COUNT : OPT_QUIT;
+}
+
 static void row_text(int i, char *label, char *value, size_t n)
 {
     static const char *const LABELS[] = { "Display Mode", "Window Size", "Aspect Ratio",
                                           "Render Resolution", "Texture Filtering", "V-Sync",
-                                          "FPS Counter", "Skip Intro Movies", "Back" };
+                                          "FPS Counter", "Skip Intro Movies", "Back",
+                                          "Quit to Desktop" };
     snprintf(label, 64, "%s", LABELS[i]);
     value[0] = 0;
     switch (i) {
@@ -113,6 +122,7 @@ static void row_text(int i, char *label, char *value, size_t n)
     case OPT_VSYNC:  snprintf(value, n, "%s", VSYNC_NAMES[s_vsync]); break;
     case OPT_FPS:    snprintf(value, n, "%s", s_fps ? "On" : "Off"); break;
     case OPT_INTRO:  snprintf(value, n, "%s", s_intro ? "On" : "Off"); break;
+    case OPT_QUIT:   snprintf(value, n, "%s", s_quit_armed ? "Press again to quit" : ""); break;
     }
 }
 
@@ -296,6 +306,7 @@ void rky_options_page_open(int live)
     s_live = live;
     s_sel = 0;
     s_window_dirty = 0;
+    s_quit_armed = 0;
     load_values();
 }
 
@@ -307,11 +318,11 @@ void rky_options_page_draw(uint32_t *out, int w, int h, const uint32_t *backdrop
     for (int i = 0; i < OPT_COUNT; i++) {
         row_text(i, labels[i], values[i], sizeof values[i]);
         rows[i].label = labels[i];
-        rows[i].value = i == OPT_BACK ? NULL : values[i];
+        rows[i].value = i == OPT_BACK || (i == OPT_QUIT && !s_quit_armed) ? NULL : values[i];
         rows[i].gap_before = i == OPT_BACK;
         rows[i].dim = i == OPT_RES && s_mode != RKY_WINDOWED;
     }
-    rky_ui_menu(out, w, h, backdrop, x0, y0, pw, ph, "PC OPTIONS", rows, OPT_COUNT, s_sel,
+    rky_ui_menu(out, w, h, backdrop, x0, y0, pw, ph, "PC OPTIONS", rows, row_count(), s_sel,
                 s_live ? NULL : "Changes apply when the game starts.",
                 "Up/Down: choose    Left/Right: change    Esc / B: back");
 }
@@ -319,8 +330,19 @@ void rky_options_page_draw(uint32_t *out, int w, int h, const uint32_t *backdrop
 /* 1: the page closed. */
 int rky_options_page_input(int in)
 {
-    if (in == IN_UP) s_sel = (s_sel + OPT_COUNT - 1) % OPT_COUNT;
-    else if (in == IN_DOWN) s_sel = (s_sel + 1) % OPT_COUNT;
+    int n = row_count();
+    if (in != IN_OK)
+        s_quit_armed = 0;
+    if (in == IN_UP) s_sel = (s_sel + n - 1) % n;
+    else if (in == IN_DOWN) s_sel = (s_sel + 1) % n;
+    else if (in == IN_OK && s_sel == OPT_QUIT) {
+        if (s_quit_armed) {
+            /* As closing the window does: the main loop ends the game. */
+            SDL_Event q = { .type = SDL_QUIT };
+            SDL_PushEvent(&q);
+        }
+        s_quit_armed = 1;
+    }
     else if (in == IN_LEFT && s_sel != OPT_BACK) change(-1);
     else if ((in == IN_RIGHT || in == IN_OK) && s_sel != OPT_BACK) change(1);
     else if (in == IN_CLOSE || (in == IN_OK && s_sel == OPT_BACK)) {
@@ -335,7 +357,7 @@ int rky_options_page_input(int in)
 /* Choose row r (a mouse click in the launcher), then act as OK. */
 int rky_options_page_click(int r)
 {
-    if (r < 0 || r >= OPT_COUNT)
+    if (r < 0 || r >= row_count())
         return 0;
     s_sel = r;
     return rky_options_page_input(IN_OK);

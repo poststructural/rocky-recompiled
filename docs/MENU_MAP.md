@@ -92,6 +92,15 @@ Still to find: the per-frame menu update (selection, input, the `action`
 dispatch), the `SPECIAL` widget dispatch, and where Quit to Main Menu acts.
 Those come from following the tables these parsers fill.
 
+## Done so far
+
+- **PC wording** (`src/pcpatch.c`): at start-up a reworded copy of
+  `FEND.PAK` is built in the save folder (`pcpatch\FEND.PAK`) from the
+  user's own file, or from a mod's, and served through the mod path hook.
+  47 lines across the five string files.
+- **Quit to Desktop** in PC OPTIONS (F1). The native pause-menu item still
+  needs the action dispatch below, best found with a traced run.
+
 ## Plan that follows from this
 
 1. **Quit to Desktop:** add an `OBJECT` + `STRING` to the pause groups (6,
