@@ -38,6 +38,13 @@ executable can be rebuilt with a modified version of them.
 The LGPL libraries are separate DLLs and can be replaced by other builds of
 the same version.
 
+## Fonts
+
+The launcher's fonts are compiled into `Rocky.exe` (from `assets/fonts/`):
+[Bebas Neue](https://github.com/dharmatype/Bebas-Neue) and
+[Oswald](https://github.com/googlefonts/OswaldFont), both under the SIL Open
+Font License 1.1 (`licenses/OFL-BebasNeue.txt`, `licenses/OFL-Oswald.txt`).
+
 ## Build tools
 
 [Capstone](https://www.capstone-engine.org/) (BSD-3-Clause) disassembles the

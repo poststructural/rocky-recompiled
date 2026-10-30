@@ -28,13 +28,18 @@ typedef struct {
 } RkyUiRow;
 
 /* Draw a menu into out (w x h, 0xAARRGGBB). backdrop: a picture to darken
- * behind it (w x h), or NULL for the launcher's own background. The menu is
- * laid out in the 4:3 area (x0, y0, pw, ph). note: a line under the rows
- * (status, errors); footer: the key help at the bottom. Either may be NULL. */
+ * behind it (w x h), the menu laid out in the 4:3 area (x0, y0, pw, ph); or
+ * NULL for the launcher's look, over the whole window. note: a line under
+ * the rows (status, errors); footer: the key help at the bottom, parts
+ * "Keys: what" split by runs of spaces. Either may be NULL. */
 void rky_ui_menu(uint32_t *out, int w, int h, const uint32_t *backdrop,
                  int x0, int y0, int pw, int ph, const char *title,
                  const RkyUiRow *rows, int n, int sel, const char *note,
                  const char *footer);
+
+/* The launcher's info panel at the top right for the next rky_ui_menu call
+ * (launcher look only): n pairs of key and value, kept by the caller. */
+void rky_ui_panel(const char *const *keys, const char *const *vals, int n);
 
 /* The row under a point of the window, or -1 (mouse), for the last layout
  * drawn. */

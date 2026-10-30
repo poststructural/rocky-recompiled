@@ -1,7 +1,12 @@
-/* Rocky.exe's icon and version (vk/CMakeLists.txt fills in the version). */
+/* Rocky.exe's icon, the launcher's fonts (src/ui.c) and version
+ * (vk/CMakeLists.txt fills in the version). */
 #include <winver.h>
 
 1 ICON "@RKY_ROOT_NATIVE@/assets/rocky.ico"
+
+101 RCDATA "@RKY_ROOT_NATIVE@/assets/fonts/BebasNeue-Regular.ttf"
+102 RCDATA "@RKY_ROOT_NATIVE@/assets/fonts/Oswald-Regular.ttf"
+103 RCDATA "@RKY_ROOT_NATIVE@/assets/fonts/Oswald-Medium.ttf"
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0

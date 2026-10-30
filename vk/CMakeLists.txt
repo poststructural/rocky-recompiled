@@ -137,6 +137,10 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         $<TARGET_FILE_DIR:${PROJECT_NAME}>/licenses/xboxrecomp-NOTICE.txt
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_xr}/LICENSES/LGPL-2.1.txt
         $<TARGET_FILE_DIR:${PROJECT_NAME}>/licenses/LGPL-2.1.txt
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${RKY_ROOT}/assets/fonts/OFL-BebasNeue.txt
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>/licenses/OFL-BebasNeue.txt
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${RKY_ROOT}/assets/fonts/OFL-Oswald.txt
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>/licenses/OFL-Oswald.txt
     VERBATIM)
 
 # Profiling aid: RKY_PROFILE_NOINLINE=ON keeps the GPU model's helpers out of

@@ -9,8 +9,9 @@
  *   OPEN SAVES FOLDER
  *   QUIT
  *
- * Keys (arrows, Enter, Esc), the mouse, or a controller through XInput (the
- * game's SDL input is not up yet). --play, or settings.ini skip_launcher =
+ * Drawn in the launcher's own look (src/ui.c), with an info panel on the
+ * main page. Keys (arrows, Enter, Esc), the mouse, or a
+ * controller through XInput (the game's SDL input is not up yet). --play, or settings.ini skip_launcher =
  * on, goes straight to the game.
  */
 #include <windows.h>
@@ -124,20 +125,33 @@ static void draw(void)
     if (L.page == PAGE_OPTIONS) {
         rky_options_page_draw(L.px, w, h, NULL, x0, y0, pw, ph);
     } else if (L.page == PAGE_MAIN) {
-        static char ver[160], upd[64];
+        static char upd[64], info[4][32];
+        static const char *const keys[4] = { "VERSION", "GAME FILES", "MODS", "UPDATES" };
+        const char *vals[4] = { info[0], info[1], info[2], info[3] };
+        const RkyModInfo *m;
         RkyUiRow r[M_COUNT] = {
             { "Play", NULL, 0, !L.have_game }, { "PC Options", NULL }, { "Mods", NULL },
             { "Game Files", NULL }, { "Updates", upd }, { "Open Saves Folder", NULL },
             { "Quit", NULL, 1 } };
-        int st = rky_update_state();
+        int st = rky_update_state(), nm = rky_mods_list(&m), on = 0;
+        for (int i = 0; i < nm; i++)
+            on += m[i].enabled;
         snprintf(upd, sizeof upd, "%s", st == RKY_UPD_AVAILABLE ? "New version!" :
                  st == RKY_UPD_CHECKING ? "Checking..." : st == RKY_UPD_READY ? "Restart" : "");
         r[M_UPDATE].value = upd[0] ? upd : NULL;
-        snprintf(ver, sizeof ver, "%s", L.note[0] ? L.note :
-                 !L.have_game ? "The game files are not installed yet: choose Game Files." :
-                 st == RKY_UPD_AVAILABLE ? "A new version is available under Updates." :
-                 "Version " RKY_VERSION);
-        rky_ui_menu(L.px, w, h, NULL, x0, y0, pw, ph, "ROCKY", r, M_COUNT, L.sel, ver,
+        snprintf(info[0], sizeof info[0], "%s", RKY_VERSION);
+        snprintf(info[1], sizeof info[1], "%s", L.have_game ? "READY" : "NOT INSTALLED");
+        if (on) snprintf(info[2], sizeof info[2], "%d ON", on);
+        else snprintf(info[2], sizeof info[2], "%s", nm ? "ALL OFF" : "NONE");
+        snprintf(info[3], sizeof info[3], "%s",
+                 st == RKY_UPD_CHECKING ? "CHECKING..." : st == RKY_UPD_CURRENT ? "UP TO DATE" :
+                 st == RKY_UPD_AVAILABLE ? "NEW VERSION" : st == RKY_UPD_DOWNLOADING ? "DOWNLOADING" :
+                 st == RKY_UPD_READY ? "RESTART TO USE" : st == RKY_UPD_FAILED ? "COULD NOT CHECK" : "NOT CHECKED");
+        rky_ui_panel(keys, vals, 4);
+        rky_ui_menu(L.px, w, h, NULL, x0, y0, pw, ph, "ROCKY", r, M_COUNT, L.sel,
+                    L.note[0] ? L.note :
+                    !L.have_game ? "The game files are not installed yet: choose Game Files." :
+                    st == RKY_UPD_AVAILABLE ? "A new version is available under Updates." : NULL,
                     "Up/Down: choose    Enter / A: select    Esc / B: quit");
     } else if (L.page == PAGE_MODS) {
         const RkyModInfo *m;

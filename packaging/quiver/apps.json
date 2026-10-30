@@ -1,0 +1,13 @@
+{
+    "apps": [
+        {
+            "name": "Rocky",
+            "project": "Rocky Recompiled",
+            "repository": "unowa001/rocky-recomp",
+            "repositorySource": "gitlab",
+            "folderName": "Rocky-RockyRecompiled",
+            "tags": ["xbox", "recomp", "windows"],
+            "appIconUrl": "https://gitlab.com/unowa001/rocky-recomp/-/raw/main/assets/rocky-icon.png"
+        }
+    ]
+}
